@@ -1,0 +1,6 @@
+/build
+/node_modules
+.firebase
+.firebaserc
+cert.pem
+key.pem

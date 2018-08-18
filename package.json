@@ -1,0 +1,16 @@
+{
+  "name": "scary-giiker-cube",
+  "dependencies": {
+    "@polymer/app-layout": "^3.0.0-pre.21",
+    "@polymer/iron-flex-layout": "^3.0.0-pre.21",
+    "@polymer/lit-element": "^0.5.2",
+    "@polymer/polymer": "^3.0.0",
+    "@scarygami/scary-cube": "^1.0.0",
+    "cube-scrambler": "^1.1.0",
+    "giiker": "github:scarygami/giiker#master"
+  },
+  "devDependencies": {
+    "@webcomponents/webcomponentsjs": "^2.0.0",
+    "wct-browser-legacy": "^1.0.0"
+  }
+}
