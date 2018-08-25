@@ -74,15 +74,4 @@ function convertGiikerData (data) {
   return faces;
 }
 
-function formatTimestamp(ms) {
-  const milliseconds = ms % 1000;
-  ms = (ms - milliseconds) / 1000;
-  const seconds = ms % 60;
-  ms = (ms - seconds) / 60;
-  const minutes = ms % 60;
-  const hours = (ms - minutes) / 60;
-
-  return ('0' + hours).slice(-2) + ':' + ('0' + minutes).slice(-2) + ':' + ('0' + seconds).slice(-2) + '.' + ('00' + milliseconds).slice(-3);
-}
-
-export {convertGiikerData, formatTimestamp};
+export {convertGiikerData};

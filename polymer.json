@@ -10,8 +10,8 @@
     "css": {"minify": true},
     "html": {"minify": true},
     "bundle": false,
-    "addServiceWorker": false,
-    "addPushManifest": false
+    "addServiceWorker": true,
+    "addPushManifest": true
   }],
   "extraDependencies": [
     "node_modules/@webcomponents/webcomponentsjs/**",

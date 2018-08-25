@@ -5,9 +5,11 @@ import '../node_modules/@polymer/app-layout/app-header/app-header.js';
 import '../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '@polymer/paper-button';
 import '@scarygami/scary-cube';
+import '@scarygami/scary-stopwatch';
+import './scary-giiker-session.js';
 import GiiKER from 'giiker';
 import cubeScrambler from 'cube-scrambler';
-import {convertGiikerData, formatTimestamp} from './utils.js';
+import {convertGiikerData} from './utils.js';
 
 const modes = {
   disconnected: 0,
@@ -22,13 +24,16 @@ const modes = {
  * @polymer
  */
 class ScaryGiikerCube extends LitElement {
+  static get is() {
+    return 'scary-giiker-cube';
+  }
+
   static get properties() {
     return {
       _error: String,
       _mode: Number,
       _sequence: String,
       _battery: Number,
-      _currentTime: Number,
       _times: Array
     };
   }
@@ -43,9 +48,14 @@ class ScaryGiikerCube extends LitElement {
     this._mode = modes.disconnected;
   }
 
-  _render ({_mode, _error, _sequence, _currentTime, _times}) {
+  _render ({_mode, _error, _sequence, _times}) {
     const style = html`
       <style>
+        :host {
+          font-family: Roboto, sans-serif;
+          font-size: 16px;
+        }
+
         #content {
           flex: 1;
           flex-basis: 0.000000001px;
@@ -61,6 +71,7 @@ class ScaryGiikerCube extends LitElement {
           height: 40px;
           padding: 0 8px;
           --app-toolbar-font-size: 16px;
+          justify-content: center;
         }
 
         paper-button {
@@ -84,47 +95,53 @@ class ScaryGiikerCube extends LitElement {
           --cube-speed: 0.1s;
         }
 
-        #times {
-          height: 20%;
-          font-weight: bold;
-          text-align: center;
-          overflow-y: scroll;
-          background-color: #EEE;
-        }
-
         #info {
+          padding: 2px;
           display: flex;
           flex-direction: row;
           flex-wrap: wrap;
           align-items: center;
           justify-content: center;
+          margin-top: 8px;
+        }
+
+        #message {
+          margin-top: 8px;
+          padding: 2px;
+          text-align: center;
         }
 
         #info > * {
           margin: 2px;
         }
 
-        [green] {
+        scary-stopwatch {
+          text-align: center;
+          font-size: 32px;
+        }
+
+        .move {
+          font-size: 24px;
+        }
+
+        [done] {
           color: green;
         }
 
-        [red] {
+        [wrong] {
           color: red;
-        }
-
-        [yellow] {
-          color: #F90;
-        }
-
-        [gray] {
-          color: #999;
-        }
-
-        [bold] {
           font-weight: bold;
-          font-size: 150%;
         }
-      </style>
+
+        [next] {
+          font-weight: bold;
+          font-size: 40px;
+        }
+
+        [incomplete] {
+          color: #CCC;
+        }
+       </style>
     `;
 
     let controls = html``;
@@ -149,35 +166,49 @@ class ScaryGiikerCube extends LitElement {
         break;
       case modes.ready:
         controls = html`
-          <button on-click=${this._startTimer.bind(this)}>Start timer</paper-button>
+          <paper-button on-click=${this._startTimer.bind(this)}>Start timer</paper-button>
           <paper-button button on-click=${this._cancel.bind(this)}>Cancel</paper-button>
         `;
         break;
       case modes.solving:
         controls = html`
           <button on-click=${this._stopTimer.bind(this)}>Stop timer</paper-button>
-          <paper-button button on-click=${this._cancel.bind(this)}>Cancel</paper-button>
         `;
         break;
     }
 
     let info;
+    let message;
     switch (_mode) {
       case modes.disconnected:
         if (_error) {
-          info = _error;
+          message = _error;
+        } else {
+          message = 'Use the button above to connect to your GiiKER cube.';
         }
+        break;
+      case modes.idle:
+        message = 'Start a new session with the button above.';
         break;
       case modes.scrambling:
         info = html`
           ${_sequence.map((move) => {
-            return html`<span bold?=${move.next} green?=${move.done} yellow?=${move.incomplete} red?=${move.wrong} gray?=${move.correction}>${move.move}</span>`;
+            return html`<span class="move" next?=${move.next} done?=${move.done} wrong?=${move.wrong} incomplete?=${move.incomplete}>${move.move}</span>`;
           })}`;
+        message = 'Follow these moves to scramble your cube:';
         break;
       case modes.ready:
       case modes.solving:
-        info = html`<span>${formatTimestamp(_currentTime)}</span>`;
+        info = html`<scary-stopwatch></scary-stopwatch>`;
+        if (_mode === modes.ready) {
+          message = 'Timer will start automatically on your first move.';
+        } else {
+          message = 'Timer will stop automatically, when the cube is solved.';
+        }
         break;
+    }
+    if (message) {
+      message = html`<div id="message">${message}</div>`;
     }
     if (info) {
       info = html`<div id="info">${info}</div>`;
@@ -185,11 +216,7 @@ class ScaryGiikerCube extends LitElement {
 
     let times;
     if (_times && _times.length > 0) {
-      times = html`
-        <div id="times">
-          ${_times.map((time) => html`<span>${formatTimestamp(time)}</span><br>`)}
-        </div>
-      `;
+      times = html`<scary-giiker-session times="${_times}"></scary-giiker-session>`;
     }
 
     return html`
@@ -199,6 +226,7 @@ class ScaryGiikerCube extends LitElement {
           <app-toolbar>${controls}</app-toolbar>
         </app-header>
         <div id="content">
+          ${message}
           ${info}
           <scary-cube on-cube-solved=${this._solved.bind(this)}></scary-cube>
           ${times}
@@ -237,6 +265,9 @@ class ScaryGiikerCube extends LitElement {
 
   _disconnect () {
     if (!this._giiker) {
+      this.mode = modes.disconnected;
+      this._moves = [];
+      this._error = '';
       return;
     }
     this._giiker.disconnect();
@@ -266,26 +297,11 @@ class ScaryGiikerCube extends LitElement {
 
   _ready() {
     this._mode = modes.ready;
-    this._currentTime = 0;
   }
 
   _startTimer() {
     this._mode = modes.solving;
-    this._startTime = Date.now();
-    this._currentTime = 0;
-    window.requestAnimationFrame(this._timer.bind(this));
-  }
-
-  _timer() {
-    if (this._mode !== modes.solving) {
-      return;
-    }
-    const now = Date.now();
-    const time = now - this._startTime;
-
-    this._currentTime = time;
-
-    window.requestAnimationFrame(this._timer.bind(this));
+    this.shadowRoot.querySelector('scary-stopwatch').start();
   }
 
   _solved() {
@@ -295,15 +311,21 @@ class ScaryGiikerCube extends LitElement {
   }
 
   _stopTimer() {
-    // stop timer, record and display time
+    const stopwatch = this.shadowRoot.querySelector('scary-stopwatch');
+    stopwatch.stop();
+    const time = stopwatch.time;
     this._mode = modes.idle;
-    const now = Date.now();
-    const time = now - this._startTime;
-    this._times = [time, ...this._times];
+    this._times = [...this._times, time];
+    stopwatch.reset();
     this._scramble();
   }
 
   _cancel () {
+    const stopwatch = this.shadowRoot.querySelector('scary-stopwatch');
+    if (stopwatch) {
+      stopwatch.stop();
+      stopwatch.reset();
+    }
     this._mode = modes.idle;
     this._moves = [];
   }
@@ -420,4 +442,4 @@ class ScaryGiikerCube extends LitElement {
   }
 }
 
-window.customElements.define('scary-giiker-cube', ScaryGiikerCube);
+window.customElements.define(ScaryGiikerCube.is, ScaryGiikerCube);
