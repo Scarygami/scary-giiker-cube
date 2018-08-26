@@ -1,15 +1,20 @@
 import {LitElement, html} from '@polymer/lit-element';
-import {setPassiveTouchGestures} from '@polymer/polymer/lib/utils/settings.js';
+import {setPassiveTouchGestures, setRootPath} from '@polymer/polymer/lib/utils/settings.js';
 import '../node_modules/@polymer/app-layout/app-header-layout/app-header-layout.js';
 import '../node_modules/@polymer/app-layout/app-header/app-header.js';
 import '../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '@polymer/paper-button';
+import '@polymer/iron-icon';
 import '@scarygami/scary-cube';
 import '@scarygami/scary-stopwatch';
 import './scary-giiker-session.js';
+import './scary-giiker-icons.js';
 import GiiKER from 'giiker';
 import cubeScrambler from 'cube-scrambler';
 import {convertGiikerData} from './utils.js';
+
+setPassiveTouchGestures(true);
+setRootPath(window.MyAppGlobals.rootPath);
 
 const modes = {
   disconnected: 0,
@@ -33,22 +38,28 @@ class ScaryGiikerCube extends LitElement {
       _error: String,
       _mode: Number,
       _sequence: String,
-      _battery: Number,
-      _times: Array
+      _times: Array,
+      _install: Boolean
     };
   }
 
   constructor () {
     super();
-    setPassiveTouchGestures(true);
     this._error = '';
     this._moves = [];
     this._lastmove = 0;
     this._sequence = [];
     this._mode = modes.disconnected;
+    this._install = false;
   }
 
-  _render ({_mode, _error, _sequence, _times}) {
+  connectedCallback () {
+    super.connectedCallback();
+
+    window.addEventListener('beforeinstallprompt', this._installPrompt.bind(this));
+  }
+
+  _render ({_mode, _error, _sequence, _times, _install}) {
     const style = html`
       <style>
         :host {
@@ -64,34 +75,35 @@ class ScaryGiikerCube extends LitElement {
         }
 
         app-header {
-          background-color: #8fb;
+          background-color: #88FFBB;
         }
 
         app-toolbar {
-          height: 40px;
+          height: 52px;
           padding: 0 8px;
           --app-toolbar-font-size: 16px;
-          justify-content: center;
-        }
-
-        paper-button {
-          padding: 2px 4px;
-          background-color: white;
+          justify-content: space-between;
         }
 
         app-toolbar > * {
           margin: 0 4px;
         }
 
+        paper-button {
+          padding: 4px;
+          background-color: white;
+          text-transform: none;
+        }
+
         scary-cube {
           width: 100%;
           flex: 1;
           flex-basis: 0.000000001px;
-          --cube-color-f: #8fb;
-          --cube-color-r: #fcc;
-          --cube-color-b: #38f;
-          --cube-color-l: #f40;
-          --cube-color-d: #ff5;
+          --cube-color-f: #88FFBB;
+          --cube-color-r: #FFCCCC;
+          --cube-color-b: #3388FF;
+          --cube-color-l: #FF4400;
+          --cube-color-d: #FFFF55;
           --cube-speed: 0.1s;
         }
 
@@ -139,7 +151,11 @@ class ScaryGiikerCube extends LitElement {
         }
 
         [incomplete] {
-          color: #CCC;
+          color: #CCCCCC;
+        }
+
+        [hidden] {
+          display: none;
         }
        </style>
     `;
@@ -172,13 +188,14 @@ class ScaryGiikerCube extends LitElement {
         break;
       case modes.solving:
         controls = html`
-          <button on-click=${this._stopTimer.bind(this)}>Stop timer</paper-button>
+          <paper-button on-click=${this._stopTimer.bind(this)}>Stop timer</paper-button>
         `;
         break;
     }
 
     let info;
     let message;
+    let showTimer = false;
     switch (_mode) {
       case modes.disconnected:
         if (_error) {
@@ -198,13 +215,12 @@ class ScaryGiikerCube extends LitElement {
         message = 'Follow these moves to scramble your cube:';
         break;
       case modes.ready:
+        showTimer = true;
+        message = 'Timer will start automatically on your first move.';
+        break;
       case modes.solving:
-        info = html`<scary-stopwatch></scary-stopwatch>`;
-        if (_mode === modes.ready) {
-          message = 'Timer will start automatically on your first move.';
-        } else {
-          message = 'Timer will stop automatically, when the cube is solved.';
-        }
+        showTimer = true;
+        message = 'Timer will stop automatically, when the cube is solved.';
         break;
     }
     if (message) {
@@ -214,29 +230,32 @@ class ScaryGiikerCube extends LitElement {
       info = html`<div id="info">${info}</div>`;
     }
 
-    let times;
-    if (_times && _times.length > 0) {
-      times = html`<scary-giiker-session times="${_times}"></scary-giiker-session>`;
-    }
+    const showTimes = (_times && _times.length > 0);
 
     return html`
       ${style}
       <app-header-layout fullbleed has-scrolling-region>
         <app-header slot="header">
-          <app-toolbar>${controls}</app-toolbar>
+          <app-toolbar>
+            <img src="/images/manifest/logo-48.png" alt="scary-cube logo">
+            ${controls}
+            <iron-icon icon="scary:install" hidden?=${!_install} on-click=${this._installClick.bind(this)}></iron-icon>
+          </app-toolbar>
         </app-header>
         <div id="content">
           ${message}
           ${info}
+          <scary-stopwatch hidden?=${!showTimer}></scary-stopwatch>
           <scary-cube on-cube-solved=${this._solved.bind(this)}></scary-cube>
-          ${times}
+          <scary-giiker-session hidden?=${!showTimes} times="${_times}"></scary-giiker-session>
         </div>
       </app-header-layout>
     `;
   }
 
-  ready () {
-    super.ready();
+  _firstRendered () {
+    this._scaryCube = this.shadowRoot.querySelector('scary-cube');
+    this._scaryStopwatch = this.shadowRoot.querySelector('scary-stopwatch');
   }
 
   _connect () {
@@ -245,10 +264,6 @@ class ScaryGiikerCube extends LitElement {
     GiiKER.connect().then((giiker) => {
       this._giiker = giiker;
       giiker.on('move', this._handleMove.bind(this));
-      this._battery = giiker.batteryLevel;
-      giiker.on('battery-changed', (data) => {
-        this._battery = data.level;
-      });
       giiker.on('disconnected', () => {
         this._mode = modes.disconnected;
         this._moves = [];
@@ -257,7 +272,7 @@ class ScaryGiikerCube extends LitElement {
       });
       this._mode = modes.idle;
       const faces = convertGiikerData(giiker.state);
-      this.shadowRoot.querySelector('scary-cube').faces = faces;
+      this._scaryCube.faces = faces;
     }).catch((e) => {
       this._error = e.message;
     });
@@ -265,7 +280,7 @@ class ScaryGiikerCube extends LitElement {
 
   _disconnect () {
     if (!this._giiker) {
-      this.mode = modes.disconnected;
+      this._mode = modes.disconnected;
       this._moves = [];
       this._error = '';
       return;
@@ -295,37 +310,33 @@ class ScaryGiikerCube extends LitElement {
     this._mode = modes.scrambling;
   }
 
-  _ready() {
+  _ready () {
     this._mode = modes.ready;
   }
 
-  _startTimer() {
+  _startTimer () {
     this._mode = modes.solving;
-    this.shadowRoot.querySelector('scary-stopwatch').start();
+    this._scaryStopwatch.start();
   }
 
-  _solved() {
+  _solved () {
     if (this._mode === modes.solving) {
       this._stopTimer();
     }
   }
 
-  _stopTimer() {
-    const stopwatch = this.shadowRoot.querySelector('scary-stopwatch');
-    stopwatch.stop();
-    const time = stopwatch.time;
+  _stopTimer () {
+    this._scaryStopwatch.stop();
+    const time = this._scaryStopwatch.time;
     this._mode = modes.idle;
     this._times = [...this._times, time];
-    stopwatch.reset();
+    this._scaryStopwatch.reset();
     this._scramble();
   }
 
   _cancel () {
-    const stopwatch = this.shadowRoot.querySelector('scary-stopwatch');
-    if (stopwatch) {
-      stopwatch.stop();
-      stopwatch.reset();
-    }
+    this._scaryStopwatch.stop();
+    this._scaryStopwatch.reset();
     this._mode = modes.idle;
     this._moves = [];
   }
@@ -408,7 +419,7 @@ class ScaryGiikerCube extends LitElement {
   _handleMove (move) {
     const now = Date.now();
     move = move.notation;
-    this.shadowRoot.querySelector('scary-cube').addMove(move);
+    this._scaryCube.addMove(move);
     if (this._mode === modes.scrambling) {
       this._checkScramble(move);
       return;
@@ -437,8 +448,24 @@ class ScaryGiikerCube extends LitElement {
     this._lastmove = now;
   }
 
-  _reset() {
-    this.shadowRoot.querySelector('scary-cube').reset();
+  _reset () {
+    this._scaryCube.reset();
+  }
+
+  /* Logic for handling Chrome's add to homescreen feature */
+  _installPrompt (e) {
+    e.preventDefault();
+    this._deferredPrompt = e;
+    this._install = true;
+  }
+
+  _installClick () {
+    if (!this._deferredPrompt) {
+      return;
+    }
+    this._install = false;
+    this._deferredPrompt.prompt();
+    this._deferredPrompt = null;
   }
 }
 

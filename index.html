@@ -4,11 +4,43 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
 
-    <title>scary-giiker-cube</title>
-    <meta name="description" content="scary-giiker-cube description">
+    <title>scary-cube</title>
+    <meta name="description" content="Time your Rubik's cubes solves with the GiiKER cube">
 
-    <!-- See https://goo.gl/OOhYW5 -->
+    <link rel="icon" href="/images/favicon.ico">
     <link rel="manifest" href="/manifest.json">
+
+    <meta name="theme-color" content="#88FFBB">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="scary-cube">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="scary-cube">
+
+    <link rel="apple-touch-icon" href="/images/manifest/logo-48.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/images/manifest/logo-72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="/images/manifest/logo-96.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/images/manifest/logo-144.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/images/manifest/logo-192.png">
+
+    <meta name="msapplication-TileImage" content="/images/manifest/logo-144.png">
+    <meta name="msapplication-TileColor" content="#88FFBB">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <script>
+      window.MyAppGlobals = { rootPath: '/' };
+
+      // Load and register pre-caching Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js', {
+            scope: window.MyAppGlobals.rootPath
+          });
+        });
+      }
+    </script>
 
     <script src="/node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
 
@@ -17,12 +49,17 @@
   <style>
     html, body {
       height: 100vh;
+      font-family: "Roboto", "Noto", sans-serif;
       padding: 0;
       margin: 0;
       overflow: hidden;
+      background-color: white;
     }
   </style>
   <body>
     <scary-giiker-cube></scary-giiker-cube>
+    <noscript>
+      Please enable JavaScript to view this website.
+    </noscript>
   </body>
 </html>

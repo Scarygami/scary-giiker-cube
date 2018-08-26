@@ -3,6 +3,8 @@
   "dependencies": {
     "@polymer/app-layout": "^3.0.0-pre.23",
     "@polymer/iron-flex-layout": "^3.0.0-pre.23",
+    "@polymer/iron-icon": "^3.0.0-pre.23",
+    "@polymer/iron-iconset-svg": "^3.0.0-pre.23",
     "@polymer/lit-element": "^0.5.2",
     "@polymer/paper-button": "^3.0.0-pre.23",
     "@polymer/polymer": "^3.0.0",

@@ -13,8 +13,12 @@
     "addServiceWorker": true,
     "addPushManifest": true
   }],
+  "sources": [
+    "images/**/*"
+  ],
   "extraDependencies": [
-    "node_modules/@webcomponents/webcomponentsjs/**",
+    "node_modules/@webcomponents/webcomponentsjs/*.js",
+    "node_modules/@webcomponents/webcomponentsjs/bundles/*.js",
     "manifest.json"
   ]
 }
