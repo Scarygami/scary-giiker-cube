@@ -12,6 +12,7 @@
     "@scarygami/scary-stopwatch": "^1.0.0",
     "@webcomponents/webcomponentsjs": "^2.1.0",
     "cube-scrambler": "github:scarygami/cube-scrambler#master",
-    "giiker": "github:scarygami/giiker#master"
+    "giiker": "github:scarygami/giiker#master",
+    "nosleep.js": "^0.7.0"
   }
 }

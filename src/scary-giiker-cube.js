@@ -16,6 +16,8 @@ import {convertGiikerData} from './utils.js';
 setPassiveTouchGestures(true);
 setRootPath(window.MyAppGlobals.rootPath);
 
+const noSleep = new window.NoSleep();
+
 const modes = {
   disconnected: 0,
   idle: 1,
@@ -269,6 +271,7 @@ class ScaryGiikerCube extends LitElement {
         this._moves = [];
         this._error = '';
         this._giiker = null;
+        noSleep.disable();
       });
       this._mode = modes.idle;
       const faces = convertGiikerData(giiker.state);
@@ -292,6 +295,7 @@ class ScaryGiikerCube extends LitElement {
     if (this._mode !== modes.idle) {
       return;
     }
+    noSleep.enable();
     this._times = [];
     this._scramble();
   }
@@ -335,6 +339,7 @@ class ScaryGiikerCube extends LitElement {
   }
 
   _cancel () {
+    noSleep.disable();
     this._scaryStopwatch.stop();
     this._scaryStopwatch.reset();
     this._mode = modes.idle;

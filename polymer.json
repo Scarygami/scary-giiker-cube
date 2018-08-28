@@ -1,4 +1,6 @@
 {
+  "entrypoint": "index.html",
+  "shell": "src/scary-giiker-cube.js",
   "npm": true,
   "lint": {
     "rules": [
@@ -9,7 +11,7 @@
     "js": {"minify": true, "compile": true},
     "css": {"minify": true},
     "html": {"minify": true},
-    "bundle": false,
+    "bundle": true,
     "addServiceWorker": true,
     "addPushManifest": true
   }],
@@ -19,6 +21,7 @@
   "extraDependencies": [
     "node_modules/@webcomponents/webcomponentsjs/*.js",
     "node_modules/@webcomponents/webcomponentsjs/bundles/*.js",
+    "node_modules/nosleep.js/dist/NoSleep.min.js",
     "manifest.json"
   ]
 }
