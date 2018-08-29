@@ -61,7 +61,7 @@ class ScaryGiikerCube extends LitElement {
     window.addEventListener('beforeinstallprompt', this._installPrompt.bind(this));
   }
 
-  _render ({_mode, _error, _sequence, _times, _install}) {
+  render () {
     const style = html`
       <style>
         :host {
@@ -163,34 +163,34 @@ class ScaryGiikerCube extends LitElement {
     `;
 
     let controls = html``;
-    switch (_mode) {
+    switch (this._mode) {
       case modes.disconnected:
         controls = html`
-          <paper-button raised on-click=${this._connect.bind(this)}>Connect</paper-button>
+          <paper-button raised @click=${this._connect.bind(this)}>Connect</paper-button>
         `;
         break;
       case modes.idle:
         controls = html`
-          <paper-button raised on-click=${this._disconnect.bind(this)}>Disconnect</paper-button>
-          <paper-button raised on-click=${this._reset.bind(this)}>Reset Cube</paper-button>
-          <paper-button raised on-click=${this._startSession.bind(this)}>New Session</paper-button>
+          <paper-button raised @click=${this._disconnect.bind(this)}>Disconnect</paper-button>
+          <paper-button raised @click=${this._reset.bind(this)}>Reset Cube</paper-button>
+          <paper-button raised @click=${this._startSession.bind(this)}>New Session</paper-button>
         `;
         break;
       case modes.scrambling:
         controls = html`
-          <paper-button button on-click=${this._ready.bind(this)}>Scramble finished</paper-button>
-          <paper-button button on-click=${this._cancel.bind(this)}>Cancel</paper-button>
+          <paper-button button @click=${this._ready.bind(this)}>Scramble finished</paper-button>
+          <paper-button button @click=${this._cancel.bind(this)}>Cancel</paper-button>
         `;
         break;
       case modes.ready:
         controls = html`
-          <paper-button on-click=${this._startTimer.bind(this)}>Start timer</paper-button>
-          <paper-button button on-click=${this._cancel.bind(this)}>Cancel</paper-button>
+          <paper-button @click=${this._startTimer.bind(this)}>Start timer</paper-button>
+          <paper-button button @click=${this._cancel.bind(this)}>Cancel</paper-button>
         `;
         break;
       case modes.solving:
         controls = html`
-          <paper-button on-click=${this._stopTimer.bind(this)}>Stop timer</paper-button>
+          <paper-button @click=${this._stopTimer.bind(this)}>Stop timer</paper-button>
         `;
         break;
     }
@@ -198,10 +198,10 @@ class ScaryGiikerCube extends LitElement {
     let info;
     let message;
     let showTimer = false;
-    switch (_mode) {
+    switch (this._mode) {
       case modes.disconnected:
-        if (_error) {
-          message = _error;
+        if (this._error) {
+          message = this._error;
         } else {
           message = 'Use the button above to connect to your GiiKER cube.';
         }
@@ -211,8 +211,8 @@ class ScaryGiikerCube extends LitElement {
         break;
       case modes.scrambling:
         info = html`
-          ${_sequence.map((move) => {
-            return html`<span class="move" next?=${move.next} done?=${move.done} wrong?=${move.wrong} incomplete?=${move.incomplete}>${move.move}</span>`;
+          ${this._sequence.map((move) => {
+            return html`<span class="move" ?next=${move.next} ?done=${move.done} ?wrong=${move.wrong} ?incomplete=${move.incomplete}>${move.move}</span>`;
           })}`;
         message = 'Follow these moves to scramble your cube:';
         break;
@@ -232,7 +232,7 @@ class ScaryGiikerCube extends LitElement {
       info = html`<div id="info">${info}</div>`;
     }
 
-    const showTimes = (_times && _times.length > 0);
+    const showTimes = (this._times && this._times.length > 0);
 
     return html`
       ${style}
@@ -241,21 +241,21 @@ class ScaryGiikerCube extends LitElement {
           <app-toolbar>
             <img src="/images/manifest/logo-48.png" alt="scary-cube logo">
             ${controls}
-            <iron-icon icon="scary:install" hidden?=${!_install} on-click=${this._installClick.bind(this)}></iron-icon>
+            <iron-icon icon="scary:install" ?hidden=${!this._install} @click=${this._installClick.bind(this)}></iron-icon>
           </app-toolbar>
         </app-header>
         <div id="content">
           ${message}
           ${info}
-          <scary-stopwatch hidden?=${!showTimer}></scary-stopwatch>
-          <scary-cube on-cube-solved=${this._solved.bind(this)}></scary-cube>
-          <scary-giiker-session hidden?=${!showTimes} times="${_times}"></scary-giiker-session>
+          <scary-stopwatch ?hidden=${!showTimer}></scary-stopwatch>
+          <scary-cube id="cube" @cube-solved=${this._solved.bind(this)}></scary-cube>
+          <scary-giiker-session ?hidden=${!showTimes} .times="${this._times}"></scary-giiker-session>
         </div>
       </app-header-layout>
     `;
   }
 
-  _firstRendered () {
+  firstRendered () {
     this._scaryCube = this.shadowRoot.querySelector('scary-cube');
     this._scaryStopwatch = this.shadowRoot.querySelector('scary-stopwatch');
   }

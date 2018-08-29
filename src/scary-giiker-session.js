@@ -62,7 +62,7 @@ class ScaryGiikerSession extends LitElement {
     this.times = [];
   }
 
-  _render ({times}) {
+  render () {
     const style = html`
       <style>
         :host {
@@ -98,6 +98,7 @@ class ScaryGiikerSession extends LitElement {
         }
       </style>
     `;
+    const times = this.times;
     if (!times || times.length === 0) {
       return html``;
     }
