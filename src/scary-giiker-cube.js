@@ -37,6 +37,7 @@ class ScaryGiikerCube extends LitElement {
 
   static get properties() {
     return {
+      updateAvailable: Boolean,
       _error: String,
       _mode: Number,
       _sequence: String,
@@ -242,6 +243,7 @@ class ScaryGiikerCube extends LitElement {
             <img src="/images/manifest/logo-48.png" alt="scary-cube logo">
             ${controls}
             <iron-icon icon="scary:install" ?hidden=${!this._install} @click=${this._installClick.bind(this)}></iron-icon>
+            <iron-icon icon="scary:refresh" ?hidden=${!this.updateAvailable} @click=${this._refresh.bind(this)}></iron-icon>
           </app-toolbar>
         </app-header>
         <div id="content">
@@ -471,6 +473,10 @@ class ScaryGiikerCube extends LitElement {
     this._install = false;
     this._deferredPrompt.prompt();
     this._deferredPrompt = null;
+  }
+
+  _refresh () {
+    window.location.reload(true);
   }
 }
 

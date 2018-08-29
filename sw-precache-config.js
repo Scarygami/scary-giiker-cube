@@ -11,7 +11,9 @@
 module.exports = {
   staticFileGlobs: [
     'src/**/*',
-    'manifest.json'
+    'images/**/*',
+    'manifest.json',
+    'node_modules/nosleep.js/**/*'
   ],
   runtimeCaching: [
     {

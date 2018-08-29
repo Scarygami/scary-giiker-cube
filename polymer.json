@@ -8,12 +8,12 @@
     ]
   },
   "builds": [{
-    "js": {"minify": true, "compile": true},
+    "js": {"minify": true, "compile": true, "transformModuleToAmd": true},
     "css": {"minify": true},
     "html": {"minify": true},
     "bundle": true,
     "addServiceWorker": true,
-    "addPushManifest": true
+    "addPushManifest": false
   }],
   "sources": [
     "images/**/*"
