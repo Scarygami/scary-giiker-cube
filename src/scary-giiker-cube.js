@@ -257,7 +257,7 @@ class ScaryGiikerCube extends LitElement {
     `;
   }
 
-  firstRendered () {
+  firstUpdated () {
     this._scaryCube = this.shadowRoot.querySelector('scary-cube');
     this._scaryStopwatch = this.shadowRoot.querySelector('scary-stopwatch');
   }
@@ -313,6 +313,7 @@ class ScaryGiikerCube extends LitElement {
     }));
 
     this._sequence[0].next = true;
+    this._scaryCube.hint(this._sequence[0].move);
     this._mode = modes.scrambling;
   }
 
@@ -373,7 +374,8 @@ class ScaryGiikerCube extends LitElement {
           if (currentIndex === sequence.length - 1) {
             ready = true;
           } else {
-            sequence[currentIndex + 1].next = true;
+            currentIndex++;
+            sequence[currentIndex].next = true;
           }
         } else {
           sequence[currentIndex].next = true;
@@ -384,7 +386,8 @@ class ScaryGiikerCube extends LitElement {
         if (currentIndex === sequence.length - 1) {
           ready = true;
         } else {
-          sequence[currentIndex + 1].next = true;
+          currentIndex++;
+          sequence[currentIndex].next = true;
         }
       }
     } else {
@@ -415,11 +418,14 @@ class ScaryGiikerCube extends LitElement {
       }
 
       sequence.splice(currentIndex + 1, 0, wrongMove, correction);
+      currentIndex = currentIndex + 2;
     }
 
     this._sequence = sequence;
     if (ready) {
       this._ready();
+    } else {
+      this._scaryCube.hint(sequence[currentIndex].move);
     }
   }
 
