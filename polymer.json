@@ -22,6 +22,7 @@
     "node_modules/@webcomponents/webcomponentsjs/*.js",
     "node_modules/@webcomponents/webcomponentsjs/bundles/*.js",
     "node_modules/nosleep.js/dist/NoSleep.min.js",
+    "node_modules/web-animations-js/*.js",
     "manifest.json"
   ]
 }

@@ -1,10 +1,14 @@
 import {LitElement, html} from '@polymer/lit-element';
 import {setPassiveTouchGestures, setRootPath} from '@polymer/polymer/lib/utils/settings.js';
+import '../node_modules/@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
+import '../node_modules/@polymer/app-layout/app-drawer/app-drawer.js';
 import '../node_modules/@polymer/app-layout/app-header-layout/app-header-layout.js';
 import '../node_modules/@polymer/app-layout/app-header/app-header.js';
 import '../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '@polymer/paper-button';
-import '@polymer/iron-icon';
+import '@polymer/paper-icon-button';
+import '@polymer/paper-swatch-picker';
+
 import '@scarygami/scary-cube';
 import '@scarygami/scary-stopwatch';
 import './scary-giiker-session.js';
@@ -42,8 +46,20 @@ class ScaryGiikerCube extends LitElement {
       _mode: Number,
       _sequence: String,
       _times: Array,
-      _install: Boolean
+      _install: Boolean,
+      _colors: Object
     };
+  }
+
+  static get originalColors() {
+    return {
+      'U': '#FFFFFF',
+      'D': '#FFFF55',
+      'L': '#FF4400',
+      'R': '#FFCCCC',
+      'F': '#88FFBB',
+      'B': '#3388FF',
+    }
   }
 
   constructor () {
@@ -54,6 +70,11 @@ class ScaryGiikerCube extends LitElement {
     this._sequence = [];
     this._mode = modes.disconnected;
     this._install = false;
+    if (window.localStorage.colors) {
+      this._colors = JSON.parse(window.localStorage.colors);
+    } else {
+      this._colors = ScaryGiikerCube.originalColors;
+    }
   }
 
   connectedCallback () {
@@ -77,6 +98,37 @@ class ScaryGiikerCube extends LitElement {
           flex-direction: column;
         }
 
+        #drawer {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 4px;
+        }
+
+        #drawer > * {
+          margin: 4px;
+        }
+
+        #drawer > .spacer {
+          width: 100%;
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px solid #CCC;
+        }
+
+        #colors {
+          display: flex;
+          flex-direction: row;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        #colors > * {
+          margin: 4px;
+          width: 100px;
+        }
+
         app-header {
           background-color: #88FFBB;
         }
@@ -98,15 +150,15 @@ class ScaryGiikerCube extends LitElement {
           text-transform: none;
         }
 
+        paper-swatch-picker {
+          background-color: #EEE;
+          border-radius: 50%;
+        }
+
         scary-cube {
           width: 100%;
           flex: 1;
           flex-basis: 0.000000001px;
-          --cube-color-f: #88FFBB;
-          --cube-color-r: #FFCCCC;
-          --cube-color-b: #3388FF;
-          --cube-color-l: #FF4400;
-          --cube-color-d: #FFFF55;
           --cube-speed: 0.1s;
         }
 
@@ -173,7 +225,6 @@ class ScaryGiikerCube extends LitElement {
       case modes.idle:
         controls = html`
           <paper-button raised @click=${this._disconnect.bind(this)}>Disconnect</paper-button>
-          <paper-button raised @click=${this._reset.bind(this)}>Reset Cube</paper-button>
           <paper-button raised @click=${this._startSession.bind(this)}>New Session</paper-button>
         `;
         break;
@@ -199,6 +250,7 @@ class ScaryGiikerCube extends LitElement {
     let info;
     let message;
     let showTimer = false;
+    let connected = true;
     switch (this._mode) {
       case modes.disconnected:
         if (this._error) {
@@ -206,6 +258,7 @@ class ScaryGiikerCube extends LitElement {
         } else {
           message = 'Use the button above to connect to your GiiKER cube.';
         }
+        connected = false;
         break;
       case modes.idle:
         message = 'Start a new session with the button above.';
@@ -237,23 +290,43 @@ class ScaryGiikerCube extends LitElement {
 
     return html`
       ${style}
-      <app-header-layout fullbleed has-scrolling-region>
-        <app-header slot="header">
-          <app-toolbar>
-            <img src="/images/manifest/logo-48.png" alt="scary-cube logo">
-            ${controls}
-            <iron-icon icon="scary:install" ?hidden=${!this._install} @click=${this._installClick.bind(this)}></iron-icon>
-            <iron-icon icon="scary:refresh" ?hidden=${!this.updateAvailable} @click=${this._refresh.bind(this)}></iron-icon>
-          </app-toolbar>
-        </app-header>
-        <div id="content">
-          ${message}
-          ${info}
-          <scary-stopwatch ?hidden=${!showTimer}></scary-stopwatch>
-          <scary-cube id="cube" @cube-solved=${this._solved.bind(this)}></scary-cube>
-          <scary-giiker-session ?hidden=${!showTimes} .times="${this._times}"></scary-giiker-session>
-        </div>
-      </app-header-layout>
+      <app-drawer-layout fullbleed force-narrow>
+        <app-drawer slot="drawer" align="right">
+          <div id="drawer">
+            <span>CFOP-Times will be measured assuming the cross being on U (white) and the last layer being D (yellow). Change the colors in case you are solving the cross on a different side.</span>
+            <div id="colors">
+              ${Object.keys(this._colors).map((face) => {
+                return html`<span>${face} <paper-swatch-picker data-face=${face}
+                                                color=${this._colors[face]}
+                                                column-count=6
+                                                color-list='["#ffffff", "#ffffff", "#88ffbb", "#00ff00", "#ffcccc", "#ff0000", "#ffff55", "#ffff00", "#3388ff", "#0000ff", "#ff4400", "#ff9900"]'
+                                                @color-changed=${this._colorChanged.bind(this)}></paper-swatch-picker></span>`;
+              })}
+            </div>
+            <span class="spacer">Warning: this will reset the GiiKER cube's internal state to "solved" in case it got out of sync.</span>
+            <paper-button raised @click=${this._reset.bind(this)}>Reset</paper-button>
+          </div>
+        </app-drawer>
+        <app-header-layout fullbleed has-scrolling-region>
+          <app-header slot="header">
+            <app-toolbar>
+              <img src="/images/manifest/logo-48.png" alt="scary-cube logo">
+              ${controls}
+              <paper-icon-button icon="scary:install" ?hidden=${!this._install} @click=${this._installClick.bind(this)}></paper-icon-button>
+              <paper-icon-button icon="scary:refresh" ?hidden=${!this.updateAvailable} @click=${this._refresh.bind(this)}></paper-icon-button>
+              <paper-icon-button icon="scary:settings" ?hidden=${!connected} drawer-toggle></paper-icon-button>
+            </app-toolbar>
+          </app-header>
+          <div id="content">
+            ${message}
+            ${info}
+            <scary-stopwatch ?hidden=${!showTimer}></scary-stopwatch>
+            <scary-cube id="cube" @cube-solved=${this._solved.bind(this)}
+                        style="--cube-color-u: ${this._colors.U}; --cube-color-f: ${this._colors.F}; --cube-color-r: ${this._colors.R}; --cube-color-b: ${this._colors.B}; --cube-color-l: ${this._colors.L}; --cube-color-d: ${this._colors.D};"></scary-cube>
+            <scary-giiker-session ?hidden=${!showTimes} .times="${this._times}"></scary-giiker-session>
+          </div>
+        </app-header-layout>
+      </app-drawer-layout>
     `;
   }
 
@@ -291,6 +364,17 @@ class ScaryGiikerCube extends LitElement {
       return;
     }
     this._giiker.disconnect();
+  }
+
+  _colorChanged (e) {
+    const face = e.target.dataset.face;
+    const color = e.detail.value;
+    if (color === this._colors[face]) {
+      return;
+    }
+    this._colors[face] = color;
+    this._colors = JSON.parse(JSON.stringify(this._colors));
+    window.localStorage.colors = JSON.stringify(this._colors);
   }
 
   _startSession () {
@@ -462,6 +546,7 @@ class ScaryGiikerCube extends LitElement {
   }
 
   _reset () {
+    this._giiker.resetState();
     this._scaryCube.reset();
   }
 

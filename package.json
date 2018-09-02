@@ -7,12 +7,15 @@
     "@polymer/iron-iconset-svg": "^3.0.0-pre.25",
     "@polymer/lit-element": "^0.6.0-dev.6",
     "@polymer/paper-button": "^3.0.0-pre.25",
+    "@polymer/paper-icon-button": "^3.0.0-pre.25",
+    "@polymer/paper-swatch-picker": "^3.0.0-pre.25",
     "@polymer/polymer": "^3.0.0",
     "@scarygami/scary-cube": "^2.0.0-dev.7",
     "@scarygami/scary-stopwatch": "^1.1.0-dev.4",
     "@webcomponents/webcomponentsjs": "^2.1.1",
     "cube-scrambler": "github:scarygami/cube-scrambler#master",
-    "giiker": "github:scarygami/giiker#mjs-test",
-    "nosleep.js": "^0.7.0"
+    "giiker": "github:scarygami/giiker#master",
+    "nosleep.js": "^0.7.0",
+    "web-animations-js": "^2.3.1"
   }
 }
