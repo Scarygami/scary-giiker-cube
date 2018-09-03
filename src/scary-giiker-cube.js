@@ -89,6 +89,7 @@ class ScaryGiikerCube extends LitElement {
         :host {
           font-family: Roboto, sans-serif;
           font-size: 16px;
+          --app-drawer-width: 300px;
         }
 
         #content {
@@ -122,11 +123,12 @@ class ScaryGiikerCube extends LitElement {
           flex-direction: row;
           flex-wrap: wrap;
           justify-content: center;
+          margin: 4px 16px;
         }
 
         #colors > * {
           margin: 4px;
-          width: 100px;
+          width: 80px;
         }
 
         app-header {
