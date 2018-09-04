@@ -47,7 +47,8 @@ class ScaryGiikerCube extends LitElement {
       _sequence: String,
       _times: Array,
       _install: Boolean,
-      _colors: Object
+      _colors: Object,
+      _battery: Number
     };
   }
 
@@ -295,7 +296,8 @@ class ScaryGiikerCube extends LitElement {
       <app-drawer-layout fullbleed force-narrow>
         <app-drawer slot="drawer" align="right">
           <div id="drawer">
-            <span>Change the colors to match your stickers.</span>
+            <span>Battery Level: ${this._battery}%</span>
+            <span class="spacer">Change the colors to match your stickers.</span>
             <div id="colors">
               ${Object.keys(this._colors).map((face) => {
                 return html`<span>${face} <paper-swatch-picker data-face=${face}
@@ -353,6 +355,9 @@ class ScaryGiikerCube extends LitElement {
       this._mode = modes.idle;
       const faces = convertGiikerData(giiker.state);
       this._scaryCube.faces = faces;
+      giiker.getBatteryLevel().then((battery) => {
+        this._battery = battery;
+      });
     }).catch((e) => {
       this._error = e.message;
     });
