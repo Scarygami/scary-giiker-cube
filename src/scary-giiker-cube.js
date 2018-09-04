@@ -295,7 +295,7 @@ class ScaryGiikerCube extends LitElement {
       <app-drawer-layout fullbleed force-narrow>
         <app-drawer slot="drawer" align="right">
           <div id="drawer">
-            <span>CFOP-Times will be measured assuming the cross being on U (white) and the last layer being D (yellow). Change the colors in case you are solving the cross on a different side.</span>
+            <span>Change the colors to match your stickers.</span>
             <div id="colors">
               ${Object.keys(this._colors).map((face) => {
                 return html`<span>${face} <paper-swatch-picker data-face=${face}
