@@ -363,25 +363,40 @@ class ScaryGiikerCube extends LitElement {
     });
   }
 
-  _disconnect () {
-    if (!this._giiker) {
-      this._mode = modes.disconnected;
-      this._moves = [];
-      this._error = '';
+  _handleMove (move) {
+    const now = Date.now();
+    move = move.notation;
+    this._scaryCube.addMove(move);
+    if (this._mode === modes.scrambling) {
+      this._checkScramble(move);
       return;
     }
-    this._giiker.disconnect();
-  }
+    if (this._mode === modes.ready) {
+      this._startTimer();
+    }
+    if (this._mode === modes.solving) {
+      this._checkSolve();
+    }
 
-  _colorChanged (e) {
-    const face = e.target.dataset.face;
-    const color = e.detail.value;
-    if (color === this._colors[face]) {
-      return;
+    const moves = [...this._moves];
+
+    if (now - this._lastmove < 500) {
+      const lastMove = moves.pop();
+      if (lastMove) {
+        if (lastMove === move) {
+          moves.push(move[0] + '2');
+        } else {
+          moves.push(lastMove);
+          moves.push(move);
+        }
+      } else {
+        moves.push(move);
+      }
+    } else {
+      moves.push(move);
     }
-    this._colors[face] = color;
-    this._colors = JSON.parse(JSON.stringify(this._colors));
-    window.localStorage.colors = JSON.stringify(this._colors);
+    this._moves = moves;
+    this._lastmove = now;
   }
 
   _startSession () {
@@ -406,90 +421,6 @@ class ScaryGiikerCube extends LitElement {
     this._sequence[0].next = true;
     this._scaryCube.hint(this._sequence[0].move);
     this._mode = modes.scrambling;
-  }
-
-  _ready () {
-    this._mode = modes.ready;
-    this._cfopCross = -1;
-    this._cfopFirstPair = -1;
-    this._cfopF2L = -1;
-    this._cfopOLL = -1;
-    this._cfopPLL = -1;
-    this._checkSolve();
-  }
-
-  _checkSolve () {
-    const faces = this._giiker.stateString;
-    const time = this._scaryStopwatch.time;
-    if (this._cfopCross < 0) {
-      if (detectCFOPCross(faces)) {
-        this._cfopCross = time;
-      } else {
-        return;
-      }
-    }
-    if (this._cfopFirstPair < 0) {
-      if (detectCFOPFirstPair(faces)) {
-        this._cfopFirstPair = time;
-      } else {
-        return;
-      }
-    }
-    if (this._cfopF2L < 0) {
-      if (detectCFOPF2L(faces)) {
-        this._cfopF2L = time;
-      } else {
-        return;
-      }
-    }
-    if (this._cfopOLL < 0) {
-      if (detectCFOPOLL(faces)) {
-        this._cfopOLL = time;
-      } else {
-        return;
-      }
-    }
-    if (this._cfopPLL < 0) {
-      if (detectSolve(faces)) {
-        this._cfopPLL = time;
-        this._solved();
-      }
-    }
-  }
-
-  _startTimer () {
-    this._mode = modes.solving;
-    this._scaryStopwatch.start();
-  }
-
-  _solved () {
-    if (this._mode === modes.solving) {
-      this._stopTimer();
-    }
-  }
-
-  _stopTimer () {
-    this._scaryStopwatch.stop();
-    const time = this._scaryStopwatch.time;
-    this._mode = modes.idle;
-    this._times = [...this._times, {
-      time: time,
-      cross: this._cfopCross,
-      firstPair: this._cfopFirstPair - this._cfopCross,
-      F2L: this._cfopF2L - this._cfopFirstPair,
-      OLL: this._cfopOLL - this._cfopF2L,
-      PLL: this._cfopPLL - this._cfopOLL
-    }];
-    this._scaryStopwatch.reset();
-    this._scramble();
-  }
-
-  _cancel () {
-    noSleep.disable();
-    this._scaryStopwatch.stop();
-    this._scaryStopwatch.reset();
-    this._mode = modes.idle;
-    this._moves = [];
   }
 
   _checkScramble (move) {
@@ -572,40 +503,111 @@ class ScaryGiikerCube extends LitElement {
     }
   }
 
-  _handleMove (move) {
-    const now = Date.now();
-    move = move.notation;
-    this._scaryCube.addMove(move);
-    if (this._mode === modes.scrambling) {
-      this._checkScramble(move);
+  _ready () {
+    this._mode = modes.ready;
+    this._cfopCross = -1;
+    this._cfopFirstPair = -1;
+    this._cfopF2L = -1;
+    this._cfopOLL = -1;
+    this._cfopPLL = -1;
+    this._checkSolve();
+  }
+
+  _checkSolve () {
+    const faces = this._giiker.stateString;
+    const time = this._scaryStopwatch.time;
+    if (this._cfopCross < 0) {
+      if (detectCFOPCross(faces)) {
+        this._cfopCross = time;
+      } else {
+        return;
+      }
+    }
+    if (this._cfopFirstPair < 0) {
+      if (detectCFOPFirstPair(faces)) {
+        this._cfopFirstPair = time;
+      } else {
+        return;
+      }
+    }
+    if (this._cfopF2L < 0) {
+      if (detectCFOPF2L(faces)) {
+        this._cfopF2L = time;
+      } else {
+        return;
+      }
+    }
+    if (this._cfopOLL < 0) {
+      if (detectCFOPOLL(faces)) {
+        this._cfopOLL = time;
+      } else {
+        return;
+      }
+    }
+    if (this._cfopPLL < 0) {
+      if (detectSolve(faces)) {
+        this._cfopPLL = time;
+        this._solved();
+      }
+    }
+  }
+
+  _startTimer () {
+    this._mode = modes.solving;
+    this._scaryStopwatch.start();
+  }
+
+  _solved () {
+    if (this._mode === modes.solving) {
+      this._stopTimer();
+    }
+  }
+
+  _stopTimer () {
+    this._scaryStopwatch.stop();
+    const time = this._scaryStopwatch.time;
+    this._mode = modes.idle;
+    this._times = [...this._times, {
+      time: time,
+      cross: this._cfopCross,
+      firstPair: this._cfopFirstPair - this._cfopCross,
+      F2L: this._cfopF2L - this._cfopFirstPair,
+      OLL: this._cfopOLL - this._cfopF2L,
+      PLL: this._cfopPLL - this._cfopOLL
+    }];
+    this._scaryStopwatch.reset();
+    this._scramble();
+  }
+
+  _cancel () {
+    noSleep.disable();
+    this._scaryCube.removeHint();
+    this._scaryStopwatch.stop();
+    this._scaryStopwatch.reset();
+    this._mode = modes.idle;
+    this._moves = [];
+  }
+
+  _disconnect () {
+    if (!this._giiker) {
+      this._mode = modes.disconnected;
+      this._scaryCube.removeHint();
+      this._moves = [];
+      this._error = '';
       return;
     }
-    if (this._mode === modes.ready) {
-      this._startTimer();
-    }
-    if (this._mode === modes.solving) {
-      this._checkSolve();
-    }
+    this._giiker.disconnect();
+  }
 
-    const moves = [...this._moves];
-
-    if (now - this._lastmove < 500) {
-      const lastMove = moves.pop();
-      if (lastMove) {
-        if (lastMove === move) {
-          moves.push(move[0] + '2');
-        } else {
-          moves.push(lastMove);
-          moves.push(move);
-        }
-      } else {
-        moves.push(move);
-      }
-    } else {
-      moves.push(move);
+  _colorChanged (e) {
+    const face = e.target.dataset.face;
+    const color = e.detail.value;
+    if (color === this._colors[face]) {
+      return;
     }
-    this._moves = moves;
-    this._lastmove = now;
+    this._colors[face] = color;
+    this._colors = JSON.parse(JSON.stringify(this._colors));
+    window.localStorage.colors = JSON.stringify(this._colors);
   }
 
   _reset () {

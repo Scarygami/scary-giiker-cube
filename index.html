@@ -32,7 +32,7 @@
     <script>
       window.MyAppGlobals = { rootPath: '/' };
 
-      // Load and register pre-caching Service Worker
+      // Load and register pre-caching Service Worker, check for updates
       if ('serviceWorker' in navigator) {
         window.isUpdateAvailable = new Promise((resolve) => {
           navigator.serviceWorker.register('/service-worker.js', {
