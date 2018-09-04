@@ -74,4 +74,48 @@ function convertGiikerData (data) {
   return faces;
 }
 
-export {convertGiikerData};
+function compareFaces(faces, mask) {
+  for (let i = 0; i < faces.length; i++) {
+    if (mask.charAt(i) !== '.' && mask.charAt(i) !== faces.charAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function detectCFOPCross(faces) {
+  const cross = '.U.UUU.U..R..R.....F..F........D.....L..L.....B..B....';
+  return compareFaces(faces, cross);
+}
+
+function detectCFOPFirstPair(faces) {
+  const pairs = [
+    'UU.UUU.U..R..R.....F..F........D....LL.LL.....BB.BB...',
+    '.UUUUU.U..RR.RR....F..F........D.....L..L....BB.BB....',
+    '.U.UUUUU..R..R....FF.FF........D.....LL.LL....B..B....',
+    '.U.UUU.UURR.RR.....FF.FF.......D.....L..L.....B..B....'
+  ];
+  for (let i = 0; i < pairs.length; i++) {
+    if (compareFaces(faces, pairs[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function detectCFOPF2L(faces) {
+  const F2L = 'UUUUUUUUURRRRRR...FFFFFF.......D....LLLLLL...BBBBBB...';
+  return compareFaces(faces, F2L);
+}
+
+function detectCFOPOLL(faces) {
+  const OLL = 'UUUUUUUUURRRRRR...FFFFFF...DDDDDDDDDLLLLLL...BBBBBB...';
+  return compareFaces(faces, OLL);
+}
+
+function detectSolve(faces) {
+  const solved = 'UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB';
+  return (faces === solved);
+}
+
+export {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve};

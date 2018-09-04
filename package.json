@@ -9,6 +9,7 @@
     "@polymer/paper-button": "^3.0.0-pre.25",
     "@polymer/paper-icon-button": "^3.0.0-pre.25",
     "@polymer/paper-swatch-picker": "^3.0.0-pre.25",
+    "@polymer/paper-tooltip": "^3.0.0-pre.25",
     "@polymer/polymer": "^3.0.0",
     "@scarygami/scary-cube": "^2.0.0-dev.7",
     "@scarygami/scary-stopwatch": "^1.1.0-dev.4",

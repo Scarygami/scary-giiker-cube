@@ -1,4 +1,5 @@
 import {LitElement, html} from '@polymer/lit-element';
+import '@polymer/paper-tooltip';
 
 function formatTimestamp(ms) {
   if (!ms && ms !== 0) {
@@ -21,6 +22,28 @@ function formatTimestamp(ms) {
   display += ('00' + milliseconds.toString(10)).slice(-3);
 
   return display;
+}
+
+function formatSeconds(ms) {
+  if (!ms && ms !== 0) {
+    return '-';
+  }
+  const milliseconds = ms % 1000;
+  ms = (ms - milliseconds) / 1000;
+  const seconds = ms % 60;
+
+  let display = seconds.toString(10);
+  display += '.' + ('00' + milliseconds.toString(10)).slice(-3);
+  return display;
+}
+
+function formatSplit(time) {
+  return html`
+    <span>Cross:&nbsp;${formatSeconds(time.cross)}&nbsp;|</span>
+    <span>First&nbsp;Pair:&nbsp;${formatSeconds(time.firstPair)}&nbsp;|</span>
+    <span>F2L:&nbsp;${formatSeconds(time.F2L)}&nbsp;|</span>
+    <span>OLL:&nbsp;${formatSeconds(time.OLL)}&nbsp;|</span>
+    <span>PLL:&nbsp;${formatSeconds(time.PLL)}</span>`;
 }
 
 function calculateAo5(times) {
@@ -96,14 +119,15 @@ class ScaryGiikerSession extends LitElement {
         .wrap > * {
           margin: 2px;
         }
+
       </style>
     `;
-    const times = this.times;
-    if (!times || times.length === 0) {
+    if (!this.times || this.times.length === 0) {
       return html``;
     }
+    const times = this.times.map((time) => time.time);
 
-    const latest = times[times.length - 1];
+    const latest = this.times[this.times.length - 1];
     const best = Math.min(...times);
     const mean = times.reduce((sum, time) => sum + time, 0) / times.length;
     let ao5;
@@ -120,11 +144,18 @@ class ScaryGiikerSession extends LitElement {
       bestao5 = Math.min(...ao5s);
     }
 
-    const history = [...times].reverse();
+    const history = [...this.times].reverse();
 
     return html`
       ${style}
-      <div id="latest">${formatTimestamp(latest)}</div>
+      <div id="latest">${formatTimestamp(latest.time)}</div>
+      <div class="wrap">
+        <span>Cross: ${formatSeconds(latest.cross)} |</span>
+        <span>First Pair: ${formatSeconds(latest.firstPair)} |</span>
+        <span>F2L: ${formatSeconds(latest.F2L)} |</span>
+        <span>OLL: ${formatSeconds(latest.OLL)} |</span>
+        <span>PLL: ${formatSeconds(latest.PLL)}</span>
+      </div>
       <div class="wrap">
         <span>Best: ${formatTimestamp(best)} |</span>
         <span>Mean: ${formatTimestamp(mean)} |</span>
@@ -132,7 +163,10 @@ class ScaryGiikerSession extends LitElement {
         <span>Best Ao5: ${formatTimestamp(bestao5)}</span>
       </div>
       <div class="wrap">
-        ${history.map((time, index) => html`<span>${(index !== 0) ? '| ' : ''}${formatTimestamp(time)}</span><br>`)}
+        ${history.map((time, index) => html`<div>
+          <span>${(index !== 0) ? '| ' : ''}${formatTimestamp(time.time)}</span>
+          <paper-tooltip position="top">${formatSplit(time)}</paper-tooltip>
+        </div>`)}
       </div>
     `;
   }

@@ -15,7 +15,7 @@ import './scary-giiker-session.js';
 import './scary-giiker-icons.js';
 import GiiKER from 'giiker';
 import cubeScrambler from 'cube-scrambler';
-import {convertGiikerData} from './utils.js';
+import {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve} from './utils.js';
 
 setPassiveTouchGestures(true);
 setRootPath(window.MyAppGlobals.rootPath);
@@ -323,7 +323,7 @@ class ScaryGiikerCube extends LitElement {
             ${message}
             ${info}
             <scary-stopwatch ?hidden=${!showTimer}></scary-stopwatch>
-            <scary-cube id="cube" @cube-solved=${this._solved.bind(this)}
+            <scary-cube id="cube"
                         style="--cube-color-u: ${this._colors.U}; --cube-color-f: ${this._colors.F}; --cube-color-r: ${this._colors.R}; --cube-color-b: ${this._colors.B}; --cube-color-l: ${this._colors.L}; --cube-color-d: ${this._colors.D};"></scary-cube>
             <scary-giiker-session ?hidden=${!showTimes} .times="${this._times}"></scary-giiker-session>
           </div>
@@ -405,6 +405,51 @@ class ScaryGiikerCube extends LitElement {
 
   _ready () {
     this._mode = modes.ready;
+    this._cfopCross = -1;
+    this._cfopFirstPair = -1;
+    this._cfopF2L = -1;
+    this._cfopOLL = -1;
+    this._cfopPLL = -1;
+    this._checkSolve();
+  }
+
+  _checkSolve () {
+    const faces = this._giiker.stateString;
+    const time = this._scaryStopwatch.time;
+    if (this._cfopCross < 0) {
+      if (detectCFOPCross(faces)) {
+        this._cfopCross = time;
+      } else {
+        return;
+      }
+    }
+    if (this._cfopFirstPair < 0) {
+      if (detectCFOPFirstPair(faces)) {
+        this._cfopFirstPair = time;
+      } else {
+        return;
+      }
+    }
+    if (this._cfopF2L < 0) {
+      if (detectCFOPF2L(faces)) {
+        this._cfopF2L = time;
+      } else {
+        return;
+      }
+    }
+    if (this._cfopOLL < 0) {
+      if (detectCFOPOLL(faces)) {
+        this._cfopOLL = time;
+      } else {
+        return;
+      }
+    }
+    if (this._cfopPLL < 0) {
+      if (detectSolve(faces)) {
+        this._cfopPLL = time;
+        this._solved();
+      }
+    }
   }
 
   _startTimer () {
@@ -422,7 +467,14 @@ class ScaryGiikerCube extends LitElement {
     this._scaryStopwatch.stop();
     const time = this._scaryStopwatch.time;
     this._mode = modes.idle;
-    this._times = [...this._times, time];
+    this._times = [...this._times, {
+      time: time,
+      cross: this._cfopCross,
+      firstPair: this._cfopFirstPair - this._cfopCross,
+      F2L: this._cfopF2L - this._cfopFirstPair,
+      OLL: this._cfopOLL - this._cfopF2L,
+      PLL: this._cfopPLL - this._cfopOLL
+    }];
     this._scaryStopwatch.reset();
     this._scramble();
   }
@@ -526,6 +578,10 @@ class ScaryGiikerCube extends LitElement {
     if (this._mode === modes.ready) {
       this._startTimer();
     }
+    if (this._mode === modes.solving) {
+      this._checkSolve();
+    }
+
     const moves = [...this._moves];
 
     if (now - this._lastmove < 500) {
