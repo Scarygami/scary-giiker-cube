@@ -7,6 +7,7 @@ import '../node_modules/@polymer/app-layout/app-header/app-header.js';
 import '../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '@polymer/paper-button';
 import '@polymer/paper-icon-button';
+import '@polymer/paper-tooltip';
 import '@polymer/paper-swatch-picker';
 
 import '@scarygami/scary-cube';
@@ -15,7 +16,8 @@ import './scary-giiker-session.js';
 import './scary-giiker-icons.js';
 import GiiKER from 'giiker';
 import cubeScrambler from 'cube-scrambler';
-import {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve} from './utils.js';
+import {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve, calculateSession} from './utils.js';
+//import {saveSession} from './scary-giiker-db.js';
 
 setPassiveTouchGestures(true);
 setRootPath(window.MyAppGlobals.rootPath);
@@ -140,11 +142,31 @@ class ScaryGiikerCube extends LitElement {
           height: 52px;
           padding: 0 8px;
           --app-toolbar-font-size: 16px;
-          justify-content: space-between;
         }
 
         app-toolbar > * {
           margin: 0 4px;
+        }
+
+        .flex {
+          flex: 1;
+          flex-basis: 0.000000001px;
+        }
+
+        .button {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .button paper-icon-button {
+          padding: 0;
+          width: 30px;
+          height: 30px;
+        }
+
+        .button span {
+          font-size: 0.8em;
         }
 
         paper-button {
@@ -222,30 +244,66 @@ class ScaryGiikerCube extends LitElement {
     switch (this._mode) {
       case modes.disconnected:
         controls = html`
-          <paper-button raised @click=${this._connect.bind(this)}>Connect</paper-button>
+          <div class="button" @click=${this._connect.bind(this)}>
+            <paper-icon-button icon="scary:connect"></paper-icon-button>
+            <span>Connect</span>
+          </div>
         `;
         break;
       case modes.idle:
         controls = html`
-          <paper-button raised @click=${this._disconnect.bind(this)}>Disconnect</paper-button>
-          <paper-button raised @click=${this._startSession.bind(this)}>New Session</paper-button>
+          <div class="button">
+            <paper-icon-button icon="scary:new-session" @click=${this._startSession.bind(this)}></paper-icon-button>
+            <span>New Session</span>
+          </div>
+          <div class="flex"></div>
+          <div class="button">
+            <paper-icon-button icon="scary:disconnect" @click=${this._disconnect.bind(this)}></paper-icon-button>
+            <span>Disconnect</span>
+          </div>
         `;
         break;
       case modes.scrambling:
         controls = html`
-          <paper-button button @click=${this._ready.bind(this)}>Scramble finished</paper-button>
-          <paper-button button @click=${this._cancel.bind(this)}>Cancel</paper-button>
+          <div class="button" @click=${this._ready.bind(this)}>
+            <paper-icon-button icon="scary:done"></paper-icon-button>
+            <span>Scramble finished</span>
+          </div>
+          <div class="flex"></div>
+          <div class="button" ?hidden=${(this._times.length === 0)} @click=${this._saveSession.bind(this)}>
+            <paper-icon-button icon="scary:save"></paper-icon-button>
+            <span>Save session</span>
+          </div>
+          <div class="button" @click=${this._cancel.bind(this)}>
+            <paper-icon-button icon="scary:cancel"></paper-icon-button>
+            <span>Abort session</span>
+          </div>
         `;
         break;
       case modes.ready:
         controls = html`
-          <paper-button @click=${this._startTimer.bind(this)}>Start timer</paper-button>
-          <paper-button button @click=${this._cancel.bind(this)}>Cancel</paper-button>
+          <div class="button" @click=${this._startTimer.bind(this)}>
+            <paper-icon-button icon="scary:start"></paper-icon-button>
+            <span>Start timer</span>
+          </div>
+          <div class="flex"></div>
+          <div class="button" ?hidden=${(this._times.length === 0)} @click=${this._saveSession.bind(this)}>
+            <paper-icon-button icon="scary:save"></paper-icon-button>
+            <span>Save session</span>
+          </div>
+          <div class="button" @click=${this._cancel.bind(this)}>
+            <paper-icon-button icon="scary:cancel"></paper-icon-button>
+            <span>Abort session</span>
+          </div>
         `;
         break;
       case modes.solving:
         controls = html`
-          <paper-button @click=${this._stopTimer.bind(this)}>Stop timer</paper-button>
+          <div class="button" @click=${this._stopTimer.bind(this)}>
+            <paper-icon-button icon="scary:stop"></paper-icon-button>
+            <span>Stop timer</span>
+          </div>
+          <div class="flex"></div>
         `;
         break;
     }
@@ -297,7 +355,7 @@ class ScaryGiikerCube extends LitElement {
         <app-drawer slot="drawer" align="right">
           <div id="drawer">
             <span>Battery Level: ${this._battery}%</span>
-            <span class="spacer">Change the colors to match your stickers.</span>
+            <span class="space">Change the colors to match your stickers.</span>
             <div id="colors">
               ${Object.keys(this._colors).map((face) => {
                 return html`<span>${face} <paper-swatch-picker data-face=${face}
@@ -315,10 +373,20 @@ class ScaryGiikerCube extends LitElement {
           <app-header slot="header">
             <app-toolbar>
               <img src="/images/manifest/logo-48.png" alt="scary-cube logo">
+              <div class="flex"></div>
               ${controls}
-              <paper-icon-button icon="scary:install" ?hidden=${!this._install} @click=${this._installClick.bind(this)}></paper-icon-button>
-              <paper-icon-button icon="scary:refresh" ?hidden=${!this.updateAvailable} @click=${this._refresh.bind(this)}></paper-icon-button>
-              <paper-icon-button icon="scary:settings" ?hidden=${!connected} drawer-toggle></paper-icon-button>
+              <div class="button" ?hidden=${!this._install} @click=${this._installClick.bind(this)}>
+                <paper-icon-button icon="scary:install"></paper-icon-button>
+                <span>Install App</span>
+              </div>
+              <div class="button" ?hidden=${!this.updateAvailable} @click=${this._refresh.bind(this)}>
+                <paper-icon-button icon="scary:refresh"></paper-icon-button>
+                <span>Update App</span>
+              </div>
+              <div class="button" ?hidden=${!connected}>
+                <paper-icon-button icon="scary:settings" drawer-toggle></paper-icon-button>
+                <span>Settings</span>
+              </div>
             </app-toolbar>
           </app-header>
           <div id="content">
@@ -327,7 +395,7 @@ class ScaryGiikerCube extends LitElement {
             <scary-stopwatch ?hidden=${!showTimer}></scary-stopwatch>
             <scary-cube id="cube"
                         style="--cube-color-u: ${this._colors.U}; --cube-color-f: ${this._colors.F}; --cube-color-r: ${this._colors.R}; --cube-color-b: ${this._colors.B}; --cube-color-l: ${this._colors.L}; --cube-color-d: ${this._colors.D};"></scary-cube>
-            <scary-giiker-session ?hidden=${!showTimes} .times="${this._times}"></scary-giiker-session>
+            <scary-giiker-session ?hidden=${!showTimes} .session="${calculateSession(this._times)}"></scary-giiker-session>
           </div>
         </app-header-layout>
       </app-drawer-layout>
@@ -579,6 +647,11 @@ class ScaryGiikerCube extends LitElement {
     this._scramble();
   }
 
+  _saveSession () {
+    //saveSession(calculateSession(this._times));
+    this._cancel();
+  }
+
   _cancel () {
     noSleep.disable();
     this._scaryCube.removeHint();
@@ -586,6 +659,7 @@ class ScaryGiikerCube extends LitElement {
     this._scaryStopwatch.reset();
     this._mode = modes.idle;
     this._moves = [];
+    this._times = [];
   }
 
   _disconnect () {

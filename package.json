@@ -15,6 +15,7 @@
     "@scarygami/scary-stopwatch": "^1.1.0-dev.4",
     "@webcomponents/webcomponentsjs": "^2.1.1",
     "cube-scrambler": "github:scarygami/cube-scrambler#master",
+    "dexie": "^2.0.4",
     "giiker": "github:scarygami/giiker#master",
     "nosleep.js": "^0.7.0",
     "web-animations-js": "^2.3.1"

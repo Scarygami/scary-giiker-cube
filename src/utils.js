@@ -118,4 +118,53 @@ function detectSolve(faces) {
   return (faces === solved);
 }
 
-export {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve};
+function calculateAo5(times) {
+  if (times.length !== 5) {
+    return null;
+  }
+  const best = Math.min(...times);
+  const worst = Math.max(...times);
+  const bestIndex = times.indexOf(best);
+  const worstIndex = times.lastIndexOf(worst);
+
+  const average = times.reduce((sum, time, index) => {
+    if (index !== bestIndex && index !== worstIndex) {
+      return sum + time;
+    }
+    return sum;
+  }, 0) / 3;
+
+  return average;
+}
+
+function calculateSession(fullTimes) {
+  if (!fullTimes || fullTimes.length === 0) {
+    return null;
+  }
+
+  const history = [...fullTimes].reverse();
+
+  const times = fullTimes.map((time) => time.time);
+
+  const best = Math.min(...times);
+  const mean = times.reduce((sum, time) => sum + time, 0) / times.length;
+  let ao5;
+  let bestao5;
+
+  if (times.length >= 5) {
+    const ao5s = [];
+    for (let i = 0; i < times.length - 4; i++) {
+      const slice = times.slice(i, i + 5);
+      ao5s.push(calculateAo5(slice));
+    }
+
+    ao5 = ao5s[ao5s.length - 1];
+    bestao5 = Math.min(...ao5s);
+  }
+
+  return {
+    history, best, mean, ao5, bestao5
+  };
+}
+
+export {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve, calculateSession};

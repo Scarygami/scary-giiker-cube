@@ -46,25 +46,6 @@ function formatSplit(time) {
     <span>PLL:&nbsp;${formatSeconds(time.PLL)}</span>`;
 }
 
-function calculateAo5(times) {
-  if (times.length !== 5) {
-    return null;
-  }
-  const best = Math.min(...times);
-  const worst = Math.max(...times);
-  const bestIndex = times.indexOf(best);
-  const worstIndex = times.lastIndexOf(worst);
-
-  const average = times.reduce((sum, time, index) => {
-    if (index !== bestIndex && index !== worstIndex) {
-      return sum + time;
-    }
-    return sum;
-  }, 0) / 3;
-
-  return average;
-}
-
 /**
  * @customElement
  * @polymer
@@ -76,7 +57,7 @@ class ScaryGiikerSession extends LitElement {
 
   static get properties () {
     return {
-      times: Array
+      session: Object
     };
   }
 
@@ -122,48 +103,28 @@ class ScaryGiikerSession extends LitElement {
 
       </style>
     `;
-    if (!this.times || this.times.length === 0) {
+    if (!this.session) {
       return html``;
     }
-    const times = this.times.map((time) => time.time);
-
-    const latest = this.times[this.times.length - 1];
-    const best = Math.min(...times);
-    const mean = times.reduce((sum, time) => sum + time, 0) / times.length;
-    let ao5;
-    let bestao5;
-
-    if (times.length >= 5) {
-      const ao5s = [];
-      for (let i = 0; i < times.length - 4; i++) {
-        const slice = times.slice(i, i + 5);
-        ao5s.push(calculateAo5(slice));
-      }
-
-      ao5 = ao5s[ao5s.length - 1];
-      bestao5 = Math.min(...ao5s);
-    }
-
-    const history = [...this.times].reverse();
 
     return html`
       ${style}
-      <div id="latest">${formatTimestamp(latest.time)}</div>
+      <div id="latest">${formatTimestamp(this.session.history[0].time)}</div>
       <div class="wrap">
-        <span>Cross: ${formatSeconds(latest.cross)} |</span>
-        <span>First Pair: ${formatSeconds(latest.firstPair)} |</span>
-        <span>F2L: ${formatSeconds(latest.F2L)} |</span>
-        <span>OLL: ${formatSeconds(latest.OLL)} |</span>
-        <span>PLL: ${formatSeconds(latest.PLL)}</span>
+        <span>Cross: ${formatSeconds(this.session.history[0].cross)} |</span>
+        <span>First Pair: ${formatSeconds(this.session.history[0].firstPair)} |</span>
+        <span>F2L: ${formatSeconds(this.session.history[0].F2L)} |</span>
+        <span>OLL: ${formatSeconds(this.session.history[0].OLL)} |</span>
+        <span>PLL: ${formatSeconds(this.session.history[0].PLL)}</span>
       </div>
       <div class="wrap">
-        <span>Best: ${formatTimestamp(best)} |</span>
-        <span>Mean: ${formatTimestamp(mean)} |</span>
-        <span>Ao5: ${formatTimestamp(ao5)} |</span>
-        <span>Best Ao5: ${formatTimestamp(bestao5)}</span>
+        <span>Best: ${formatTimestamp(this.session.best)} |</span>
+        <span>Mean: ${formatTimestamp(this.session.mean)} |</span>
+        <span>Ao5: ${formatTimestamp(this.session.ao5)} |</span>
+        <span>Best Ao5: ${formatTimestamp(this.session.bestao5)}</span>
       </div>
       <div class="wrap">
-        ${history.map((time, index) => html`<div>
+        ${this.session.history.map((time, index) => html`<div>
           <span>${(index !== 0) ? '| ' : ''}${formatTimestamp(time.time)}</span>
           <paper-tooltip position="top">${formatSplit(time)}</paper-tooltip>
         </div>`)}
