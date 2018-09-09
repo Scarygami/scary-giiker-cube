@@ -167,4 +167,68 @@ function calculateSession(fullTimes) {
   };
 }
 
-export {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve, calculateSession};
+function formatTimestamp(ms) {
+  if (!ms && ms !== 0) {
+    return '-';
+  }
+  const milliseconds = ms % 1000;
+  ms = (ms - milliseconds) / 1000;
+  const seconds = ms % 60;
+  ms = (ms - seconds) / 60;
+  const minutes = ms % 60;
+  const hours = (ms - minutes) / 60;
+
+  let display = '';
+  if (hours > 0) {
+    display += ('0' + hours.toString(10)).slice(-2) + ':';
+  }
+
+  display += ('0' + minutes.toString(10)).slice(-2) + ':';
+  display += ('0' + seconds.toString(10)).slice(-2) + '.';
+  display += ('00' + milliseconds.toString(10)).slice(-3);
+
+  return display;
+}
+
+function formatSeconds(ms) {
+  if (!ms && ms !== 0) {
+    return '-';
+  }
+  const milliseconds = ms % 1000;
+  ms = (ms - milliseconds) / 1000;
+  const seconds = ms % 60;
+
+  let display = seconds.toString(10);
+  display += '.' + ('00' + milliseconds.toString(10)).slice(-3);
+  return display;
+}
+
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+
+  let display = year.toString(10);
+  display += '-' + ('0' + month.toString(10)).slice(-2);
+  display += '-' + ('0' + day.toString(10)).slice(-2);
+
+  display += ' ' + ('0' + hour.toString(10)).slice(-2);
+  display += ':' + ('0' + minute.toString(10)).slice(-2);
+
+  return display;
+}
+
+export {
+  convertGiikerData,
+  detectCFOPCross,
+  detectCFOPF2L,
+  detectCFOPFirstPair,
+  detectCFOPOLL,
+  detectSolve,
+  calculateSession,
+  formatTimestamp,
+  formatSeconds,
+  formatDate
+};

@@ -1,10 +1,10 @@
 import {LitElement, html} from '@polymer/lit-element';
 import {setPassiveTouchGestures, setRootPath} from '@polymer/polymer/lib/utils/settings.js';
-import '../node_modules/@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
-import '../node_modules/@polymer/app-layout/app-drawer/app-drawer.js';
-import '../node_modules/@polymer/app-layout/app-header-layout/app-header-layout.js';
-import '../node_modules/@polymer/app-layout/app-header/app-header.js';
-import '../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
+import '@polymer/app-layout/app-drawer/app-drawer.js';
+import '@polymer/app-layout/app-header-layout/app-header-layout.js';
+import '@polymer/app-layout/app-header/app-header.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
 import '@polymer/paper-button';
 import '@polymer/paper-icon-button';
 import '@polymer/paper-tooltip';
@@ -17,7 +17,7 @@ import './scary-giiker-icons.js';
 import GiiKER from 'giiker';
 import cubeScrambler from 'cube-scrambler';
 import {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve, calculateSession} from './utils.js';
-//import {saveSession} from './scary-giiker-db.js';
+import db from './scary-giiker-db.js';
 
 setPassiveTouchGestures(true);
 setRootPath(window.MyAppGlobals.rootPath);
@@ -44,13 +44,15 @@ class ScaryGiikerCube extends LitElement {
   static get properties() {
     return {
       updateAvailable: Boolean,
+      _page: String,
       _error: String,
       _mode: Number,
       _sequence: String,
       _times: Array,
       _install: Boolean,
       _colors: Object,
-      _battery: Number
+      _battery: Number,
+      _sessions: Array
     };
   }
 
@@ -73,10 +75,16 @@ class ScaryGiikerCube extends LitElement {
     this._sequence = [];
     this._mode = modes.disconnected;
     this._install = false;
+    this._page = 'main';
     if (window.localStorage.colors) {
       this._colors = JSON.parse(window.localStorage.colors);
     } else {
       this._colors = ScaryGiikerCube.originalColors;
+    }
+    if (window.localStorage.sessions) {
+      this._sessions = JSON.parse(window.localStorage.sessions);
+    } else {
+      this._sessions = [];
     }
   }
 
@@ -95,7 +103,7 @@ class ScaryGiikerCube extends LitElement {
           --app-drawer-width: 300px;
         }
 
-        #content {
+        .page {
           flex: 1;
           flex-basis: 0.000000001px;
           display: flex;
@@ -241,71 +249,88 @@ class ScaryGiikerCube extends LitElement {
     `;
 
     let controls = html``;
-    switch (this._mode) {
-      case modes.disconnected:
-        controls = html`
-          <div class="button" @click=${this._connect.bind(this)}>
-            <paper-icon-button icon="scary:connect"></paper-icon-button>
-            <span>Connect</span>
-          </div>
-        `;
-        break;
-      case modes.idle:
-        controls = html`
-          <div class="button">
-            <paper-icon-button icon="scary:new-session" @click=${this._startSession.bind(this)}></paper-icon-button>
-            <span>New Session</span>
-          </div>
-          <div class="flex"></div>
-          <div class="button">
-            <paper-icon-button icon="scary:disconnect" @click=${this._disconnect.bind(this)}></paper-icon-button>
-            <span>Disconnect</span>
-          </div>
-        `;
-        break;
-      case modes.scrambling:
-        controls = html`
-          <div class="button" @click=${this._ready.bind(this)}>
-            <paper-icon-button icon="scary:done"></paper-icon-button>
-            <span>Scramble finished</span>
-          </div>
-          <div class="flex"></div>
-          <div class="button" ?hidden=${(this._times.length === 0)} @click=${this._saveSession.bind(this)}>
-            <paper-icon-button icon="scary:save"></paper-icon-button>
-            <span>Save session</span>
-          </div>
-          <div class="button" @click=${this._cancel.bind(this)}>
-            <paper-icon-button icon="scary:cancel"></paper-icon-button>
-            <span>Abort session</span>
-          </div>
-        `;
-        break;
-      case modes.ready:
-        controls = html`
-          <div class="button" @click=${this._startTimer.bind(this)}>
-            <paper-icon-button icon="scary:start"></paper-icon-button>
-            <span>Start timer</span>
-          </div>
-          <div class="flex"></div>
-          <div class="button" ?hidden=${(this._times.length === 0)} @click=${this._saveSession.bind(this)}>
-            <paper-icon-button icon="scary:save"></paper-icon-button>
-            <span>Save session</span>
-          </div>
-          <div class="button" @click=${this._cancel.bind(this)}>
-            <paper-icon-button icon="scary:cancel"></paper-icon-button>
-            <span>Abort session</span>
-          </div>
-        `;
-        break;
-      case modes.solving:
-        controls = html`
-          <div class="button" @click=${this._stopTimer.bind(this)}>
-            <paper-icon-button icon="scary:stop"></paper-icon-button>
-            <span>Stop timer</span>
-          </div>
-          <div class="flex"></div>
-        `;
-        break;
+    if (this._page === 'main') {
+      switch (this._mode) {
+        case modes.disconnected:
+          controls = html`
+            <div class="button" @click=${this._connect.bind(this)}>
+              <paper-icon-button icon="scary:connect"></paper-icon-button>
+              <span>Connect</span>
+            </div>
+            <div class="button" ?hidden=${(this._page === 'history')} @click=${this._showHistory.bind(this)}>
+              <paper-icon-button icon="scary:history"></paper-icon-button>
+              <span>History</span>
+            </div>
+          `;
+          break;
+        case modes.idle:
+          controls = html`
+            <div class="button">
+              <paper-icon-button icon="scary:new-session" @click=${this._startSession.bind(this)}></paper-icon-button>
+              <span>New Session</span>
+            </div>
+            <div class="flex"></div>
+            <div class="button" ?hidden=${(this._page === 'history')} @click=${this._showHistory.bind(this)}>
+              <paper-icon-button icon="scary:history"></paper-icon-button>
+              <span>History</span>
+            </div>
+            <div class="button">
+              <paper-icon-button icon="scary:disconnect" @click=${this._disconnect.bind(this)}></paper-icon-button>
+              <span>Disconnect</span>
+            </div>
+          `;
+          break;
+        case modes.scrambling:
+          controls = html`
+            <div class="button" @click=${this._ready.bind(this)}>
+              <paper-icon-button icon="scary:done"></paper-icon-button>
+              <span>Scramble finished</span>
+            </div>
+            <div class="flex"></div>
+            <div class="button" ?hidden=${(this._times.length === 0)} @click=${this._saveSession.bind(this)}>
+              <paper-icon-button icon="scary:save"></paper-icon-button>
+              <span>Save</span>
+            </div>
+            <div class="button" @click=${this._cancel.bind(this)}>
+              <paper-icon-button icon="scary:cancel"></paper-icon-button>
+              <span>Abort</span>
+            </div>
+          `;
+          break;
+        case modes.ready:
+          controls = html`
+            <div class="button" @click=${this._startTimer.bind(this)}>
+              <paper-icon-button icon="scary:start"></paper-icon-button>
+              <span>Start timer</span>
+            </div>
+            <div class="flex"></div>
+            <div class="button" ?hidden=${(this._times.length === 0)} @click=${this._saveSession.bind(this)}>
+              <paper-icon-button icon="scary:save"></paper-icon-button>
+              <span>Save</span>
+            </div>
+            <div class="button" @click=${this._cancel.bind(this)}>
+              <paper-icon-button icon="scary:cancel"></paper-icon-button>
+              <span>Abort</span>
+            </div>
+          `;
+          break;
+        case modes.solving:
+          controls = html`
+            <div class="button" @click=${this._stopTimer.bind(this)}>
+              <paper-icon-button icon="scary:stop"></paper-icon-button>
+              <span>Stop timer</span>
+            </div>
+            <div class="flex"></div>
+          `;
+          break;
+      }
+    } else {
+      controls = html`
+        <div class="button" @click=${this._hideHistory.bind(this)}>
+          <paper-icon-button icon="scary:cancel"></paper-icon-button>
+          <span>Close History</span>
+        </div>
+      `;
     }
 
     let info;
@@ -389,13 +414,16 @@ class ScaryGiikerCube extends LitElement {
               </div>
             </app-toolbar>
           </app-header>
-          <div id="content">
+          <div class="page" ?hidden=${(this._page !== 'main')}>
             ${message}
             ${info}
             <scary-stopwatch ?hidden=${!showTimer}></scary-stopwatch>
             <scary-cube id="cube"
                         style="--cube-color-u: ${this._colors.U}; --cube-color-f: ${this._colors.F}; --cube-color-r: ${this._colors.R}; --cube-color-b: ${this._colors.B}; --cube-color-l: ${this._colors.L}; --cube-color-d: ${this._colors.D};"></scary-cube>
             <scary-giiker-session ?hidden=${!showTimes} .session="${calculateSession(this._times)}"></scary-giiker-session>
+          </div>
+          <div class="page" ?hidden=${(this._page !== 'history')}>
+            <scary-giiker-history></scary-giiker-history>
           </div>
         </app-header-layout>
       </app-drawer-layout>
@@ -648,7 +676,7 @@ class ScaryGiikerCube extends LitElement {
   }
 
   _saveSession () {
-    //saveSession(calculateSession(this._times));
+    db.saveSession(calculateSession(this._times));
     this._cancel();
   }
 
@@ -687,6 +715,15 @@ class ScaryGiikerCube extends LitElement {
   _reset () {
     this._giiker.resetState();
     this._scaryCube.reset();
+  }
+
+  _showHistory() {
+    this._page = 'history';
+    import('./scary-giiker-history.js');
+  }
+
+  _hideHistory() {
+    this._page = 'main';
   }
 
   /* Logic for handling Chrome's add to homescreen feature */

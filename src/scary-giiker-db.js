@@ -1,14 +1,77 @@
 import Dexie from 'dexie';
 
-const db = new Dexie('ScaryCubeDB');
+class EventEmitter {
+  constructor() {
+    this.listeners = {};
+  }
 
-db.version(1).stores({
-  sessions: '++id, date, best, bestao5'
-});
+  on(label, callback) {
+    if (!this.listeners[label]) {
+      this.listeners[label] = [];
+    }
+    this.listeners[label].push(callback);
+  }
 
-async function saveSession(session) {
-  session.date = new Date();
-  await db.sessions.add(session);
+  off(label, callback) {
+    let listeners = this.listeners[label];
+
+    if (listeners && listeners.length > 0) {
+      let index = listeners.indexOf(callback);
+      if (index > -1) {
+        listeners.splice(index, 1);
+        this.listeners[label] = listeners;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  emit(label, ...args) {
+    let listeners = this.listeners[label];
+
+    if (listeners && listeners.length > 0) {
+      listeners.forEach((listener) => {
+        listener(...args);
+      });
+      return true;
+    }
+    return false;
+  }
 }
 
-export {saveSession};
+class ScaryDB extends EventEmitter {
+  constructor() {
+    super();
+    this._db = new Dexie('ScaryCubeDB');
+    this._db.version(1).stores({
+      sessions: '++id, date, best, bestao5'
+    });
+    this._sessions = [];
+    this._promise = this._db.table('sessions').toArray();
+
+    this._promise.then((sessions) => {
+      this._sessions = sessions;
+      this.notify();
+    });
+  }
+
+  get sessions() {
+    return this._promise.then(() => [...this._sessions]);
+  }
+
+  notify() {
+    this.emit('sessions-changed', {sessions: [...this._sessions]});
+  }
+
+  async saveSession(session) {
+    await this._promise;
+    session.date = new Date();
+    this._sessions.push(session);
+    await this._db.sessions.add(session);
+    this.notify();
+  }
+}
+
+const db = new ScaryDB();
+
+export default db;

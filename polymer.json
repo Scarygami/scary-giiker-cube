@@ -1,6 +1,9 @@
 {
   "entrypoint": "index.html",
   "shell": "src/scary-giiker-cube.js",
+  "fragments": [
+    "src/scary-giiker-history.js"
+  ],
   "npm": true,
   "lint": {
     "rules": [
