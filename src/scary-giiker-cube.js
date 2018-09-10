@@ -195,6 +195,11 @@ class ScaryGiikerCube extends LitElement {
           --cube-speed: 0.1s;
         }
 
+        scary-giiker-history {
+          flex: 1;
+          flex-basis: 0.000000001px;
+        }
+
         #info {
           padding: 2px;
           display: flex;

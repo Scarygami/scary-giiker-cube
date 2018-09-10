@@ -66,8 +66,19 @@ class ScaryDB extends EventEmitter {
   async saveSession(session) {
     await this._promise;
     session.date = new Date();
+    session.id = await this._db.sessions.add(session);
     this._sessions.push(session);
-    await this._db.sessions.add(session);
+    this.notify();
+  }
+
+  async deleteSession(sessionId) {
+    const index = this._sessions.findIndex((session) => (session.id === sessionId));
+    if (index < 0) {
+      return;
+    }
+    await this._promise;
+    await this._db.sessions.delete(sessionId);
+    this._sessions.splice(index, 1);
     this.notify();
   }
 }
