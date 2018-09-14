@@ -153,7 +153,7 @@ class ScaryGiikerCube extends LitElement {
         }
 
         app-toolbar > * {
-          margin: 0 4px;
+          margin: 0 8px;
         }
 
         .flex {
