@@ -1,7 +1,8 @@
 import {LitElement, html} from '@polymer/lit-element';
-import {formatTimestamp, formatDate, formatSeconds} from './utils.js';
+import {formatTimestamp, formatDate} from './utils.js';
 import db from './scary-giiker-db.js';
 import '@polymer/paper-button';
+import './scary-giiker-session.js';
 
 class ScaryGiikerHistory extends LitElement {
   static get is() {
@@ -44,25 +45,7 @@ class ScaryGiikerHistory extends LitElement {
       sessionDetails = html`
         <div class="section">
           <div class="title">Session details: ${formatDate(session.date)}</div>
-          <table><tr>
-            <td>Best</td><td class="bold">${formatTimestamp(session.best)}</td>
-            <td>Mean</td><td class="bold">${formatTimestamp(session.mean)}</td>
-          </tr>
-          <tr>
-            <td>Best Ao5</td><td class="bold">${formatTimestamp(session.bestao5)}</td>
-            <td>Last Ao5</td><td class="bold">${formatTimestamp(session.ao5)}</td>
-          </tr></table>
-          <table>
-            <tr><th>Time</th><th>Cross</th><th>First pair</th><th>F2L</th><th>OLL</th><th>PLL</th></tr>
-            ${session.history.map((solve) => html`<tr>
-              <td class="bold">${formatTimestamp(solve.time)}</td>
-              <td>${formatSeconds(solve.cross)}</td>
-              <td>${formatSeconds(solve.firstPair)}</td>
-              <td>${formatSeconds(solve.F2L)}</td>
-              <td>${formatSeconds(solve.OLL)}</td>
-              <td>${formatSeconds(solve.PLL)}</td>
-            </tr>`)}
-          </table>
+          <scary-giiker-session .session=${session}></scary-giiker-session>
           <paper-button @click=${this._deleteSession.bind(this)} raised>Delete session</paper-button>
         </div>`;
     }
@@ -94,18 +77,6 @@ class ScaryGiikerHistory extends LitElement {
 
         th {
           font-weight: normal;
-        }
-
-        .wrap {
-          display: flex;
-          flex-direction: row;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .wrap > * {
-          margin: 2px;
         }
 
         .title {

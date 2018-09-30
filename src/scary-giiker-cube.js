@@ -16,7 +16,7 @@ import './scary-giiker-session.js';
 import './scary-giiker-icons.js';
 import GiiKER from 'giiker';
 import cubeScrambler from 'cube-scrambler';
-import {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve, calculateSession} from './utils.js';
+import {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve, calculateSession, formatTimestamp} from './utils.js';
 import db from './scary-giiker-db.js';
 
 setPassiveTouchGestures(true);
@@ -250,6 +250,15 @@ class ScaryGiikerCube extends LitElement {
         [hidden] {
           display: none;
         }
+
+        #latest {
+          text-align: center;
+          font-weight: bold;
+          font-size: 32px;
+          margin-top: 4px;
+          padding-top: 4px;
+          border-top: 1px solid #CCC;
+        }
        </style>
     `;
 
@@ -378,6 +387,7 @@ class ScaryGiikerCube extends LitElement {
     }
 
     const showTimes = (this._times && this._times.length > 0);
+    const latest = this._times && this._times.length > 0 && this._times[this._times.length - 1].time;
 
     return html`
       ${style}
@@ -423,6 +433,7 @@ class ScaryGiikerCube extends LitElement {
             ${message}
             ${info}
             <scary-stopwatch ?hidden=${!showTimer}></scary-stopwatch>
+            <div id="latest" ?hidden=${showTimer || !showTimes}>${formatTimestamp(latest)}</div>
             <scary-cube id="cube"
                         style="--cube-color-u: ${this._colors.U}; --cube-color-f: ${this._colors.F}; --cube-color-r: ${this._colors.R}; --cube-color-b: ${this._colors.B}; --cube-color-l: ${this._colors.L}; --cube-color-d: ${this._colors.D};"></scary-cube>
             <scary-giiker-session ?hidden=${!showTimes} .session="${calculateSession(this._times)}"></scary-giiker-session>

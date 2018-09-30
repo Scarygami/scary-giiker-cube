@@ -204,6 +204,9 @@ function formatSeconds(ms) {
 }
 
 function formatDate(date) {
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
   const year = date.getFullYear();
   const month = date.getMonth();
   const day = date.getDate();
