@@ -1,4 +1,4 @@
-import {LitElement, html} from '@polymer/lit-element';
+import {LitElement, css, html} from 'lit-element';
 import {setPassiveTouchGestures, setRootPath} from '@polymer/polymer/lib/utils/settings.js';
 import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
 import '@polymer/app-layout/app-drawer/app-drawer.js';
@@ -14,7 +14,7 @@ import '@scarygami/scary-cube';
 import '@scarygami/scary-stopwatch';
 import './scary-giiker-session.js';
 import './scary-giiker-icons.js';
-import GiiKER from 'giiker';
+import GiiKER from '@scarygami/giiker';
 import cubeScrambler from 'cube-scrambler';
 import {convertGiikerData, detectCFOPCross, detectCFOPF2L, detectCFOPFirstPair, detectCFOPOLL, detectSolve, calculateSession, formatTimestamp} from './utils.js';
 import db from './scary-giiker-db.js';
@@ -64,10 +64,10 @@ class ScaryGiikerCube extends LitElement {
       'R': '#FFCCCC',
       'F': '#88FFBB',
       'B': '#3388FF',
-    }
+    };
   }
 
-  constructor () {
+  constructor() {
     super();
     this._error = '';
     this._moves = [];
@@ -88,180 +88,180 @@ class ScaryGiikerCube extends LitElement {
     }
   }
 
-  connectedCallback () {
+  connectedCallback() {
     super.connectedCallback();
 
     window.addEventListener('beforeinstallprompt', this._installPrompt.bind(this));
   }
 
-  render () {
-    const style = html`
-      <style>
-        :host {
-          font-family: Roboto, sans-serif;
-          font-size: 16px;
-          --app-drawer-width: 300px;
-        }
+  static get styles() {
+    return css`
+      :host {
+        font-family: Roboto, sans-serif;
+        font-size: 16px;
+        --app-drawer-width: 300px;
+      }
 
-        .page {
-          flex: 1;
-          flex-basis: 0.000000001px;
-          display: flex;
-          flex-direction: column;
-        }
+      .page {
+        flex: 1;
+        flex-basis: 0.000000001px;
+        display: flex;
+        flex-direction: column;
+      }
 
-        #drawer {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-          padding: 4px;
-        }
+      #drawer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 4px;
+      }
 
-        #drawer > * {
-          margin: 4px;
-        }
+      #drawer > * {
+        margin: 4px;
+      }
 
-        #drawer > .spacer {
-          width: 100%;
-          margin-top: 8px;
-          padding-top: 8px;
-          border-top: 1px solid #CCC;
-        }
+      #drawer > .spacer {
+        width: 100%;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #CCC;
+      }
 
-        #colors {
-          display: flex;
-          flex-direction: row;
-          flex-wrap: wrap;
-          justify-content: center;
-          margin: 4px 16px;
-        }
+      #colors {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 4px 16px;
+      }
 
-        #colors > * {
-          margin: 4px;
-          width: 80px;
-        }
+      #colors > * {
+        margin: 4px;
+        width: 80px;
+      }
 
-        app-header {
-          background-color: #88FFBB;
-        }
+      app-header {
+        background-color: #88FFBB;
+      }
 
-        app-toolbar {
-          height: 52px;
-          padding: 0 8px;
-          --app-toolbar-font-size: 16px;
-        }
+      app-toolbar {
+        height: 52px;
+        padding: 0 8px;
+        --app-toolbar-font-size: 16px;
+      }
 
-        app-toolbar > * {
-          margin: 0 8px;
-        }
+      app-toolbar > * {
+        margin: 0 8px;
+      }
 
-        .flex {
-          flex: 1;
-          flex-basis: 0.000000001px;
-        }
+      .flex {
+        flex: 1;
+        flex-basis: 0.000000001px;
+      }
 
-        .button {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
+      .button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
 
-        .button paper-icon-button {
-          padding: 0;
-          width: 30px;
-          height: 30px;
-        }
+      .button paper-icon-button {
+        padding: 0;
+        width: 30px;
+        height: 30px;
+      }
 
-        .button span {
-          font-size: 0.8em;
-        }
+      .button span {
+        font-size: 0.8em;
+      }
 
-        paper-button {
-          padding: 4px;
-          background-color: white;
-          text-transform: none;
-        }
+      paper-button {
+        padding: 4px;
+        background-color: white;
+        text-transform: none;
+      }
 
-        paper-swatch-picker {
-          background-color: #EEE;
-          border-radius: 50%;
-        }
+      paper-swatch-picker {
+        background-color: #EEE;
+        border-radius: 50%;
+      }
 
-        scary-cube {
-          width: 100%;
-          flex: 1;
-          flex-basis: 0.000000001px;
-          --cube-speed: 0.1s;
-        }
+      scary-cube {
+        width: 100%;
+        flex: 1;
+        flex-basis: 0.000000001px;
+        --cube-speed: 0.1s;
+      }
 
-        scary-giiker-history {
-          flex: 1;
-          flex-basis: 0.000000001px;
-        }
+      scary-giiker-history {
+        flex: 1;
+        flex-basis: 0.000000001px;
+      }
 
-        #info {
-          padding: 2px;
-          display: flex;
-          flex-direction: row;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: center;
-          margin-top: 8px;
-        }
+      #info {
+        padding: 2px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        margin-top: 8px;
+      }
 
-        #message {
-          margin-top: 8px;
-          padding: 2px;
-          text-align: center;
-        }
+      #message {
+        margin-top: 8px;
+        padding: 2px;
+        text-align: center;
+      }
 
-        #info > * {
-          margin: 2px;
-        }
+      #info > * {
+        margin: 2px;
+      }
 
-        scary-stopwatch {
-          text-align: center;
-          font-size: 32px;
-        }
+      scary-stopwatch {
+        text-align: center;
+        font-size: 32px;
+      }
 
-        .move {
-          font-size: 24px;
-        }
+      .move {
+        font-size: 24px;
+      }
 
-        [done] {
-          color: green;
-        }
+      [done] {
+        color: green;
+      }
 
-        [wrong] {
-          color: red;
-          font-weight: bold;
-        }
+      [wrong] {
+        color: red;
+        font-weight: bold;
+      }
 
-        [next] {
-          font-weight: bold;
-          font-size: 40px;
-        }
+      [next] {
+        font-weight: bold;
+        font-size: 40px;
+      }
 
-        [incomplete] {
-          color: #CCCCCC;
-        }
+      [incomplete] {
+        color: #CCCCCC;
+      }
 
-        [hidden] {
-          display: none;
-        }
+      [hidden] {
+        display: none;
+      }
 
-        #latest {
-          text-align: center;
-          font-weight: bold;
-          font-size: 32px;
-          margin-top: 4px;
-          padding-top: 4px;
-          border-top: 1px solid #CCC;
-        }
-       </style>
+      #latest {
+        text-align: center;
+        font-weight: bold;
+        font-size: 32px;
+        margin-top: 4px;
+        padding-top: 4px;
+        border-top: 1px solid #CCC;
+      }
     `;
+  }
 
+  render() {
     let controls = html``;
     if (this._page === 'main') {
       switch (this._mode) {
@@ -390,7 +390,6 @@ class ScaryGiikerCube extends LitElement {
     const latest = this._times && this._times.length > 0 && this._times[this._times.length - 1].time;
 
     return html`
-      ${style}
       <app-drawer-layout fullbleed force-narrow>
         <app-drawer slot="drawer" align="right">
           <div id="drawer">
@@ -446,12 +445,12 @@ class ScaryGiikerCube extends LitElement {
     `;
   }
 
-  firstUpdated () {
+  firstUpdated() {
     this._scaryCube = this.shadowRoot.querySelector('scary-cube');
     this._scaryStopwatch = this.shadowRoot.querySelector('scary-stopwatch');
   }
 
-  _connect () {
+  _connect() {
     this._error = '';
     this._moves = [];
     GiiKER.connect().then((giiker) => {
@@ -475,7 +474,7 @@ class ScaryGiikerCube extends LitElement {
     });
   }
 
-  _handleMove (move) {
+  _handleMove(move) {
     const now = Date.now();
     move = move.notation;
     this._scaryCube.addMove(move);
@@ -511,7 +510,7 @@ class ScaryGiikerCube extends LitElement {
     this._lastmove = now;
   }
 
-  _startSession () {
+  _startSession() {
     if (this._mode !== modes.idle) {
       return;
     }
@@ -535,7 +534,7 @@ class ScaryGiikerCube extends LitElement {
     this._mode = modes.scrambling;
   }
 
-  _checkScramble (move) {
+  _checkScramble(move) {
     if (this._mode !== modes.scrambling) {
       return;
     }
@@ -615,7 +614,7 @@ class ScaryGiikerCube extends LitElement {
     }
   }
 
-  _ready () {
+  _ready() {
     this._mode = modes.ready;
     this._cfopCross = -1;
     this._cfopFirstPair = -1;
@@ -625,7 +624,7 @@ class ScaryGiikerCube extends LitElement {
     this._checkSolve();
   }
 
-  _checkSolve () {
+  _checkSolve() {
     const faces = this._giiker.stateString;
     const time = this._scaryStopwatch.time;
     if (this._cfopCross < 0) {
@@ -664,18 +663,18 @@ class ScaryGiikerCube extends LitElement {
     }
   }
 
-  _startTimer () {
+  _startTimer() {
     this._mode = modes.solving;
     this._scaryStopwatch.start();
   }
 
-  _solved () {
+  _solved() {
     if (this._mode === modes.solving) {
       this._stopTimer();
     }
   }
 
-  _stopTimer () {
+  _stopTimer() {
     this._scaryStopwatch.stop();
     const time = this._scaryStopwatch.time;
     this._mode = modes.idle;
@@ -691,12 +690,12 @@ class ScaryGiikerCube extends LitElement {
     this._scramble();
   }
 
-  _saveSession () {
+  _saveSession() {
     db.saveSession(calculateSession(this._times));
     this._cancel();
   }
 
-  _cancel () {
+  _cancel() {
     noSleep.disable();
     this._scaryCube.removeHint();
     this._scaryStopwatch.stop();
@@ -706,7 +705,7 @@ class ScaryGiikerCube extends LitElement {
     this._times = [];
   }
 
-  _disconnect () {
+  _disconnect() {
     if (!this._giiker) {
       this._mode = modes.disconnected;
       this._scaryCube.removeHint();
@@ -717,7 +716,7 @@ class ScaryGiikerCube extends LitElement {
     this._giiker.disconnect();
   }
 
-  _colorChanged (e) {
+  _colorChanged(e) {
     const face = e.target.dataset.face;
     const color = e.detail.value;
     if (color === this._colors[face]) {
@@ -728,7 +727,7 @@ class ScaryGiikerCube extends LitElement {
     window.localStorage.colors = JSON.stringify(this._colors);
   }
 
-  _reset () {
+  _reset() {
     this._giiker.resetState();
     this._scaryCube.reset();
   }
@@ -743,13 +742,13 @@ class ScaryGiikerCube extends LitElement {
   }
 
   /* Logic for handling Chrome's add to homescreen feature */
-  _installPrompt (e) {
+  _installPrompt(e) {
     e.preventDefault();
     this._deferredPrompt = e;
     this._install = true;
   }
 
-  _installClick () {
+  _installClick() {
     if (!this._deferredPrompt) {
       return;
     }
@@ -758,7 +757,7 @@ class ScaryGiikerCube extends LitElement {
     this._deferredPrompt = null;
   }
 
-  _refresh () {
+  _refresh() {
     window.location.reload(true);
   }
 }

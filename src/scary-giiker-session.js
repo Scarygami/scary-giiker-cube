@@ -1,4 +1,4 @@
-import {LitElement, html} from '@polymer/lit-element';
+import {LitElement, html, css} from 'lit-element';
 import '@polymer/paper-tooltip';
 import {formatSeconds, formatTimestamp} from './utils.js';
 
@@ -22,49 +22,49 @@ class ScaryGiikerSession extends LitElement {
     this.times = [];
   }
 
-  render () {
-    const style = html`
-      <style>
-        :host {
-          padding: 4px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-        }
+  static get styles() {
+    return css`
+      :host {
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
 
-        :host > div {
-          width: 100%;
-          margin: 2px 0;
-          border-top: 1px solid #CCC;
-        }
+      :host > div {
+        width: 100%;
+        margin: 2px 0;
+        border-top: 1px solid #CCC;
+      }
 
-        table {
-          margin: 8px auto;
-          border-collapse: collapse;
-        }
+      table {
+        margin: 8px auto;
+        border-collapse: collapse;
+      }
 
-        th, td {
-          text-align: right;
-          border-bottom: 1px solid #ccc;
-          padding: 2px 4px;
-        }
+      th, td {
+        text-align: right;
+        border-bottom: 1px solid #ccc;
+        padding: 2px 4px;
+      }
 
-        th {
-          font-weight: normal;
-        }
+      th {
+        font-weight: normal;
+      }
 
-        [hidden] {
-          display: none;
-        }
-      </style>
+      [hidden] {
+        display: none;
+      }
     `;
+  }
+
+  render () {
     if (!this.session) {
       return html``;
     }
 
     return html`
-      ${style}
       <table><tr>
         <td>Best</td><td class="bold">${formatTimestamp(this.session.best)}</td>
         <td>Mean</td><td class="bold">${formatTimestamp(this.session.mean)}</td>

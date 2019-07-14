@@ -1,23 +1,23 @@
 {
   "name": "scary-giiker-cube",
   "dependencies": {
-    "@polymer/app-layout": "^3.0.0",
+    "@polymer/app-layout": "^3.1.0",
     "@polymer/iron-flex-layout": "^3.0.0",
     "@polymer/iron-icon": "^3.0.0",
     "@polymer/iron-iconset-svg": "^3.0.0",
-    "@polymer/lit-element": "^0.6.0",
     "@polymer/paper-button": "^3.0.0",
-    "@polymer/paper-icon-button": "^3.0.0",
+    "@polymer/paper-icon-button": "^3.0.2",
     "@polymer/paper-swatch-picker": "^3.0.0",
     "@polymer/paper-tooltip": "^3.0.0",
-    "@polymer/polymer": "^3.0.0",
-    "@scarygami/scary-cube": "^2.0.0",
+    "@polymer/polymer": "^3.3.0",
+    "@scarygami/giiker": "^3.0.0",
+    "@scarygami/scary-cube": "^2.2.0",
     "@scarygami/scary-stopwatch": "^1.1.0",
-    "@webcomponents/webcomponentsjs": "^2.1.2",
+    "@webcomponents/webcomponentsjs": "^2.2.10",
     "cube-scrambler": "github:scarygami/cube-scrambler#master",
     "dexie": "^2.0.4",
-    "giiker": "github:scarygami/giiker#master",
+    "lit-element": "^2.2.0",
     "nosleep.js": "^0.7.0",
-    "web-animations-js": "^2.3.1"
+    "web-animations-js": "^2.3.2"
   }
 }

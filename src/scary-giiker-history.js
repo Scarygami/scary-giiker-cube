@@ -1,4 +1,4 @@
-import {LitElement, html} from '@polymer/lit-element';
+import {LitElement, html, css} from 'lit-element';
 import {formatTimestamp, formatDate} from './utils.js';
 import db from './scary-giiker-db.js';
 import '@polymer/paper-button';
@@ -33,6 +33,47 @@ class ScaryGiikerHistory extends LitElement {
     db.off('sessions-changed', this._boundSessionListener);
   }
 
+  static get styles() {
+    return css`
+      :host {
+        padding: 2px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .section {
+        flex: 1;
+        flex-basis: 0.000000001px;
+        overflow-y: auto;
+      }
+
+      table {
+        margin: 8px auto;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        text-align: right;
+        border-bottom: 1px solid #ccc;
+        padding: 2px 4px;
+      }
+
+      th {
+        font-weight: normal;
+      }
+
+      .title {
+        text-align: center;
+        font-weight: bold;
+        border-bottom: 1px solid #ccc;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+    `;
+  }
+
   render() {
     const session = this._sessions.filter((session) => session.id === this._sessionId)[0];
     const bestTimes = this._sessions.map((session) => session.best);
@@ -51,44 +92,6 @@ class ScaryGiikerHistory extends LitElement {
     }
 
     return html`
-      <style>
-        :host {
-          padding: 2px;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .section {
-          flex: 1;
-          flex-basis: 0.000000001px;
-          overflow-y: auto;
-        }
-
-        table {
-          margin: 8px auto;
-          border-collapse: collapse;
-        }
-
-        th, td {
-          text-align: right;
-          border-bottom: 1px solid #ccc;
-          padding: 2px 4px;
-        }
-
-        th {
-          font-weight: normal;
-        }
-
-        .title {
-          text-align: center;
-          font-weight: bold;
-          border-bottom: 1px solid #ccc;
-        }
-
-        .bold {
-          font-weight: bold;
-        }
-      </style>
       <div class="section">
         <table>
           <tr><th>Date</th><th>Best</th><th>Best Ao5</th></tr>
